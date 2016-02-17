@@ -1,0 +1,10 @@
+install:
+    edit the Makefile, and shange prefix to your liking.
+
+    make
+    sudo make install
+
+	if you wish you can now copy the jeti.rc from /usr/share/jeti/ to ~/.jeti.rc
+
+Uninstall:
+    sudo make uninstall
