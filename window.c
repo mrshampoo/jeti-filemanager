@@ -210,7 +210,7 @@ void printwindow( Windowtype *win )
 						jetilog( 6,"collorate row tru filetype\n" );
 						if( win->filelist->selected )
 							filecolor = 9;
-						else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "ERROR") )
+						else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "ERROR") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "linkER"))
             				filecolor = 8;
             			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "block") )
               				filecolor = 7;
@@ -218,9 +218,9 @@ void printwindow( Windowtype *win )
               				filecolor = 6;
             			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "fifo") )
               				filecolor = 5;
-            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "link") )
+            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "link") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "<DIR L>") )
               				filecolor = 4;
-            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "<KAT>") )
+            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "<DIR>") )
               				filecolor = 3;
             			else if( S_IEXEC & gotoEntry(win->filelist, y+win->slide[win->mlevel])->status )
               				filecolor = 2;

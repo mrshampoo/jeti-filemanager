@@ -5,6 +5,7 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "projecttypes.h"
 #include "systemlog.h"
 
+#include <unistd.h>
 #include <dirent.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -63,11 +64,14 @@ void clearEntrys( dirEntry *filelist )
 dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 	{
 		int x = 0,
-				dotsize = 1; /*obs: not a bool*/
+			len = 1,
+			dotsize = 1; /*obs: not a bool*/
 
 		char path[500];
+		char link_target_path[256];
 		dirEntry *obj;
 		struct stat buf;
+		struct stat linkbuf;
 
 			jetilog( 3, "Get entrys!...\n" );
 			
@@ -95,7 +99,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 					if( S_ISDIR(buf.st_mode) )
 						{
 							strcpy( obj->presentation, obj->file->d_name );
-							strcpy( obj->filetype, "<KAT>\0");
+							strcpy( obj->filetype, "<DIR>\0");
 						}
 
 					else if( S_ISREG(buf.st_mode) )
@@ -135,26 +139,58 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 
 					else if( S_ISLNK(buf.st_mode) )
 						{
-							strcpy( obj->presentation, obj->file->d_name );
-            	strcpy( obj->filetype, "link\0");
+							if( ( len = readlink( path, link_target_path, sizeof(link_target_path) ) )!= -1 )
+								{
+									link_target_path[len] = '\0';
+									lstat( link_target_path, &linkbuf );
+
+									if( S_ISREG(linkbuf.st_mode) 
+									|| S_ISFIFO(linkbuf.st_mode)
+									|| S_ISCHR(linkbuf.st_mode)
+									|| S_ISBLK(linkbuf.st_mode) )
+										{
+											strcpy( obj->filetype, "link");
+										}
+									else if( S_ISDIR(linkbuf.st_mode) )
+										{
+											strcpy( obj->filetype, "<DIR L>");
+										}
+									else
+										{
+											strcpy( obj->filetype, "LinkER");
+											//strcpy( obj->filetype, "<DIR L>");
+										}
+
+									strcpy( obj->presentation, obj->file->d_name );
+									if( SHOWHIDDEN )
+										{
+											strcat( obj->presentation, " -> " );
+											strcat( obj->presentation, link_target_path );
+										}
+								}
+							else
+								{
+									strcpy( obj->filetype, "ERROR L\0");
+									strcpy( obj->presentation, obj->file->d_name );
+								}
 						}
 
 					else if( S_ISFIFO(buf.st_mode) )
 						{
 							strcpy( obj->presentation, obj->file->d_name );
-            	strcpy( obj->filetype, "fifo\0");
+							strcpy( obj->filetype, "fifo\0");
 						}
 
 					else if( S_ISCHR(buf.st_mode) )
 						{
 							strcpy( obj->presentation, obj->file->d_name );
-            	strcpy( obj->filetype, "char\0");
+							strcpy( obj->filetype, "char\0");
 						}
 
 					else if( S_ISBLK(buf.st_mode) )
 						{	
 							strcpy( obj->presentation, obj->file->d_name );
-            	strcpy( obj->filetype, "block\0");
+							strcpy( obj->filetype, "block\0");
 						}
 
 					else

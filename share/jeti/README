@@ -9,7 +9,6 @@ Uninstall:
 
 basic usage:
 	closing: 
-		press 'Esc'
 		or ctrl+c
 		or simply push the 'X' button in the corner of your terminal ( Jeti should be able to handle this ;) )
 
@@ -18,6 +17,7 @@ basic usage:
 		*Use up and down arrows to navigate thru files, or simply just click the file you want to handle.
 		*Press 'Enter' or double left click a catalog you want to enter, or file you want jeti to take action on (see the jeti,rc file: type actions, below.)
 		*use scroll to scroll the page up and down.
+		*Push 'Esc' if you want to get on top of page.
 
 	selecting files:
 		*navigate to the file you want to select, and hit 'space'.
@@ -58,7 +58,7 @@ basic usage:
 					Example: showing selected pictures in a slide show.
 						"feh -F $f; sleep 3s"
 
-			directory variable "$d":
+			directory variable "$dir":
 				$d is the destination directory. It takes its path from the passive window. (It is the same path shown in the command widows bottom)
 				The command will be executed once fore every file selected.
 
@@ -161,6 +161,8 @@ the jeti.rc file:
 					teleports you to the same directory as the passive window.
 				$home :
 					teleports you to the home directory of the current user.
+				$exec <command>:
+					executes a console command. here you can also use special variables $f and $dir (see commandwindow for more information).
 
 	sound effects:
 		sound.enter.<action>: "<file path>"

@@ -18,7 +18,7 @@ this program is distributed under the terms of the GNU General Public License*/
 
 int main( int argc, char *argv[] )
   {
-		/*boolelans*/
+		/*booleans*/
 		int press_action_one = 0;
 		int press_action_two = 0;
 		int press_action_shortcuts = 0;
@@ -41,15 +41,15 @@ int main( int argc, char *argv[] )
 
 		void catchresize( int dummy )
 			{
-        endwin();
-        	refresh();
-        	clear();
-        	win_one = redefinewindow( win_one, LINES, COLS/2, 0, 0 );
-        	win_two = redefinewindow( win_two, LINES, COLS/2, 0, COLS/2 );
-        	printwindow( win_one );
-        	printwindow( win_two );
+				endwin();
+				refresh();
+				clear();
+				win_one = redefinewindow( win_one, LINES, COLS/2, 0, 0 );
+				win_two = redefinewindow( win_two, LINES, COLS/2, 0, COLS/2 );
+				printwindow( win_one );
+				printwindow( win_two );
 				keypad( activwin->win, TRUE );
-      }
+			}
 		
 		void catchexit( int dummy )
 			{
@@ -57,7 +57,7 @@ int main( int argc, char *argv[] )
 				EXIT = 1;
 			}
 
-        handle_flags( argc, argv );
+		handle_flags( argc, argv );
 
 		/*Set consoletitle*/
 		printf("%c]0;%s%c", '\033', "Jeti!", '\007');
@@ -93,217 +93,207 @@ int main( int argc, char *argv[] )
 	 			
 				while( !EXIT )
 					{	
-						ch = wgetch(activwin->win);
+						ch = wgetch( activwin->win );
 						switch( ch )
 							{
 								case KEY_MOUSE:
-															if( getmouse(&event) == OK )
-																{ 
-																	if( event.bstate & BUTTON4_PRESSED )
-                                    {/*scroll_up*/
-																			press_action_one = 0;
-																			press_action_two = 0;
+												if( getmouse( &event ) == OK )
+													{ 
+														if( event.bstate & BUTTON4_PRESSED )
+															{/*scroll_up*/
+																press_action_one = 0;
+																press_action_two = 0;
 
-                                      if( insidewindow( activwin, event.y, event.x ) )
-                                        {
-                                        	repaint = scrollupp( activwin, sounds );
-                                        }
-																			else if( insidewindow( passivwin, event.y, event.x ) )
-																				{
-																					repaint = scrollupp( passivwin, sounds );
-																				}
-																			goto end_mouse_event;
-                                    }
-                                  else if( event.bstate & BUTTON5_PRESSED )
-                                    {/*scroll_down*/
-																			press_action_one = 0;
-																			press_action_two = 0;
+																if( insidewindow( activwin, event.y, event.x ) )
+																	{
+																		repaint = scrollupp( activwin, sounds );
+																	}
+																else if( insidewindow( passivwin, event.y, event.x ) )
+																	{
+																		repaint = scrollupp( passivwin, sounds );
+																	}
+															}
+														else if( event.bstate & BUTTON5_PRESSED )
+															{/*scroll_down*/
+																press_action_one = 0;
+																press_action_two = 0;
 
-                                      if( insidewindow( activwin, event.y, event.x ) )
-                                        {
-                                        	repaint = scrolldown( activwin, sounds );
-                                        }
-																			 else if( insidewindow( passivwin, event.y, event.x ) )
-                                        {
-                                          repaint = scrolldown( passivwin, sounds );
-                                        }
-																			goto end_mouse_event;
-                                    }
-																	else if( event.bstate & BUTTON1_PRESSED )
-																		{
-																			/*left_singlepressed*/
-																			if( insidewindow( passivwin, event.y, event.x ) )
-																				{
-																					if( activwin != win_one )
-																						{
-																							activwin = win_one;
-                                          													passivwin = win_two;
-																						}
-																					else
-																						{
-																							activwin = win_two;
-                                              												passivwin = win_one;
-																						}
-																					keypad( activwin->win, TRUE );
-																					press_action_one = activwin->y + event.y + activwin->slide[activwin->mlevel];
-																				}
-																			else if( insidewindow( activwin, event.y, event.x ) )
-																				{
-																					press_action_one = activwin->y + event.y + activwin->slide[activwin->mlevel];
-																				}
-																			else if( onshortcutrow( passivwin, event.y, event.x ) )
-																				{
-																					if( activwin != win_one )
-                                                                                        {
-                                                                                            activwin = win_one;
-                                                                                            passivwin = win_two;
-                                                                                        }
-                                                                                    else
-                                                                                        {
-                                                                                            activwin = win_two;
-                                                                                            passivwin = win_one;
-                                                                                        }
-                                                                                    keypad( activwin->win, TRUE );
-																					press_action_shortcuts = event.y;
-																				}
-																			else if( onshortcutrow( activwin, event.y, event.x ) )
-                                                                                {
-																					press_action_shortcuts = event.y;	
-																				}
+																if( insidewindow( activwin, event.y, event.x ) )
+																	{
+																		repaint = scrolldown( activwin, sounds );
+																	}
+																else if( insidewindow( passivwin, event.y, event.x ) )
+																	{
+																		repaint = scrolldown( passivwin, sounds );
+																	}
+															}
+														else if( event.bstate & BUTTON1_PRESSED )
+															{/*left_singlepressed*/
+																if( insidewindow( passivwin, event.y, event.x ) )
+																	{
+																		if( activwin != win_one )
+																			{
+																				activwin = win_one;
+																				passivwin = win_two;
+																			}
+																		else
+																			{
+																				activwin = win_two;
+                                              									passivwin = win_one;
+																			}
+																		keypad( activwin->win, TRUE );
+																		press_action_one = activwin->y + event.y + activwin->slide[activwin->mlevel];
+																	}
+																else if( insidewindow( activwin, event.y, event.x ) )
+																	{
+																		press_action_one = activwin->y + event.y + activwin->slide[activwin->mlevel];
+																	}
+																else if( onshortcutrow( passivwin, event.y, event.x ) )
+																	{
+																		if( activwin != win_one )
+																			{
+																				activwin = win_one;
+																				passivwin = win_two;
+																			}
+																		else
+																			{
+																				activwin = win_two;
+																				passivwin = win_one;
+																			}
+																		keypad( activwin->win, TRUE );
+																		press_action_shortcuts = event.y;
+																	}
+																else if( onshortcutrow( activwin, event.y, event.x ) )
+																	{
+																		press_action_shortcuts = event.y;	
+																	}
 																				
-                                      if( press_action_one == activwin->marker[activwin->mlevel] )
-                                        {/*left_doublepressed*/
-                                          press_action_one = -press_action_one;
-                                        }
+																if( press_action_one == activwin->marker[activwin->mlevel] )
+																	{/*left_doublepressed*/
+																		press_action_one = -press_action_one;
+																	}
 
-																			press_action_two = 0;
-																			goto end_mouse_event;
-																		}
-																	else if( event.bstate & BUTTON1_RELEASED )
-																		{
-																			if( insidewindow( activwin, event.y, event.x ) && press_action_one > 0 && press_action_one <= printtotalnr( activwin->filelist ) )
-																				{/*left_singlereleased*/
-																					activwin->marker[activwin->mlevel] = press_action_one;
-																					repaint = 1;
-																				}
-																			else if( insidewindow( passivwin, event.y, event.x ) && press_action_one != 0 )
-																				{/*draged*/
-																					repaint = copyfiles( activwin, passivwin, sounds );
-																				}
-																			else if( insidewindow( activwin, event.y, event.x ) && press_action_one < 0 )
-																				{/*left_doublereleased*/
-																					repaint = enter( activwin, actions, sounds );
-																				}
-																			else if( onshortcutrow( activwin, event.y, event.x ) && event.y == press_action_shortcuts )
-																				{
-																					activwin->shortcuts = getshortcut( activwin->shortcuts, press_action_shortcuts );
-																					repaint = handleshortcut( activwin, passivwin, sounds );
-																				}
+																press_action_two = 0;
+															}
+														else if( event.bstate & BUTTON1_RELEASED )
+															{
+																if( insidewindow( activwin, event.y, event.x ) && press_action_one > 0 && press_action_one <= printtotalnr( activwin->filelist ) )
+																	{/*left_singlereleased*/
+																		activwin->marker[activwin->mlevel] = press_action_one;
+																		repaint = 1;
+																	}
+																else if( insidewindow( passivwin, event.y, event.x ) && press_action_one != 0 )
+																	{/*draged*/
+																		repaint = copyfiles( activwin, passivwin, sounds );
+																	}
+																else if( insidewindow( activwin, event.y, event.x ) && press_action_one < 0 )
+																	{/*left_doublereleased*/
+																		repaint = enter( activwin, actions, sounds );
+																	}
+																else if( onshortcutrow( activwin, event.y, event.x ) && event.y == press_action_shortcuts )
+																	{
+																		activwin->shortcuts = getshortcut( activwin->shortcuts, press_action_shortcuts );
+																		repaint = handleshortcut( activwin, passivwin, sounds );
+																	}
 
-																			press_action_one = 0;
-																			press_action_two = 0;
-																			press_action_shortcuts = 0;
-																			goto end_mouse_event;
-																		}
-																	else if( event.bstate & BUTTON3_PRESSED )
-																		{
-																			/*right_singlepressed*/
-                                      if( insidewindow( passivwin, event.y, event.x ) ) 
-                                        {
-                                          if( activwin != win_one ) 
-                                            {
-                                              activwin = win_one;
-                                              passivwin = win_two;
-                                            }
-                                          else
-                                            {
-                                              activwin = win_two;
-                                              passivwin = win_one;
-                                            }
-                                          keypad( activwin->win, TRUE );
-                                        }
+																press_action_one = 0;
+																press_action_two = 0;
+																press_action_shortcuts = 0;
+															}
+														else if( event.bstate & BUTTON3_PRESSED )
+															{/*right_singlepressed*/
+																if( insidewindow( passivwin, event.y, event.x ) ) 
+																	{
+																		if( activwin != win_one ) 
+																			{
+																				activwin = win_one;
+																				passivwin = win_two;
+																			}
+																		else
+																			{
+																				activwin = win_two;
+																				passivwin = win_one;
+																			}
+																		keypad( activwin->win, TRUE );
+																	}
 
-                                      press_action_two = activwin->y + event.y + activwin->slide[activwin->mlevel];
+																press_action_two = activwin->y + event.y + activwin->slide[activwin->mlevel];
 
-                                      if( press_action_two == activwin->marker[activwin->mlevel] )
-                                        {/*right_doublepressed*/
-                                          press_action_two = -press_action_two;
-                                        }
+																if( press_action_two == activwin->marker[activwin->mlevel] )
+																	{/*right_doublepressed*/
+																		press_action_two = -press_action_two;
+																	}
 
-																			press_action_one = 0;
-																			goto end_mouse_event;
-																		}
-																	else if( event.bstate & BUTTON3_RELEASED )
-																		{
-																			if( insidewindow( activwin, event.y, event.x ) && press_action_two > 0 && press_action_two <= printtotalnr( activwin->filelist ))
-                                        {/*right_singlereleased*/
-                                          activwin->marker[activwin->mlevel] = press_action_two;
-																					repaint = selectfile( activwin, sounds );
-                                        }
-                                      else if( insidewindow( passivwin, event.y, event.x ) && press_action_two != 0 )
-                                        {/*draged*/
-                                          repaint = movefiles( activwin, passivwin, sounds );
-                                        }
-                                      else if( insidewindow( activwin, event.y, event.x ) && press_action_two < 0 )
-                                        {/*left_doublereleased*/
-                                          repaint = selectfile( activwin, sounds );
-                                        }
+																press_action_one = 0;
+															}
+														else if( event.bstate & BUTTON3_RELEASED )
+															{
+																if( insidewindow( activwin, event.y, event.x ) && press_action_two > 0 && press_action_two <= printtotalnr( activwin->filelist ))
+																	{/*right_singlereleased*/
+																		activwin->marker[activwin->mlevel] = press_action_two;
+																		repaint = selectfile( activwin, sounds );
+																	}
+																else if( insidewindow( passivwin, event.y, event.x ) && press_action_two != 0 )
+																	{/*draged*/
+																		repaint = movefiles( activwin, passivwin, sounds );
+																	}
+																else if( insidewindow( activwin, event.y, event.x ) && press_action_two < 0 )
+																	{/*left_doublereleased*/
+																		repaint = selectfile( activwin, sounds );
+																	}
 
-                                			press_action_two = 0;
-																			press_action_one = 0;
-																			goto end_mouse_event;
-																		}
-																}
-																end_mouse_event:
-																break;
+																press_action_two = 0;
+																press_action_one = 0;
+															}
+													}
+												break;
 
-								case KEY_UP:		repaint = stepupp( activwin, sounds );
-																break;
+								case KEY_UP:	repaint = stepupp( activwin, sounds );
+												break;
 
 								case KEY_DOWN:	repaint = stepdown( activwin, sounds );
-																break;
+												break;
 
 								case KEY_RIGHT: activwin = win_two;
-																passivwin = win_one;
-																keypad( activwin->win, TRUE ); 
-																break;
+												passivwin = win_one;
+												keypad( activwin->win, TRUE ); 
+												break;
 
 								case KEY_LEFT: 	activwin = win_one;
-																passivwin = win_two;
-																keypad( activwin->win, TRUE );
-																break;
+												passivwin = win_two;
+												keypad( activwin->win, TRUE );
+												break;
 
-								case 0xA:				repaint = enter( activwin, actions, sounds );
-																break;
+								case 0xA:		repaint = enter( activwin, actions, sounds );
+												break;
 
-								case 0x1B: 			EXIT = 1;
-																break;
+								case 0x1B: 		activwin->marker[activwin->mlevel] = -1;
+												activwin->slide[activwin->mlevel] = 0;
+												repaint = 1;
+												//EXIT = 1;
+												break;
 
-								case ':':				keypad( activwin->win, FALSE );
-																togglehide( cmdwin );
-																putnewdir( cmdwin, activwin->wd, passivwin->wd );
-																printcmdwin( cmdwin, activwin, passivwin );
-																keypad( activwin->win, TRUE );
-															/*	printwindow( win_one );
-                                printwindow( win_two );*/
-																repaint = 1;
+								case ':':		keypad( activwin->win, FALSE );
+												togglehide( cmdwin );
+												putnewdir( cmdwin, activwin->wd, passivwin->wd );
+												repaint = printcmdwin( cmdwin, activwin, passivwin );
+												keypad( activwin->win, TRUE );
+												break;
 
-																break;
+								case ' ':		repaint = selectfile( activwin, sounds );
+												break;
 
-								case ' ':				repaint = selectfile( activwin, sounds );
-																break;
-
-								case 'c': 			repaint = copyfiles( activwin, passivwin, sounds );
-																break;
+								case 'c': 		repaint = copyfiles( activwin, passivwin, sounds );
+												break;
 
 								case 'm':     	repaint = movefiles( activwin, passivwin, sounds );
-																break;
+												break;
 
 								case KEY_DC:  	repaint = removefiles( activwin, sounds );
-																break;
+												break;
 																
 								default: 
-																break;
+												break;
 							}
 						
 						if( repaint )
@@ -326,7 +316,6 @@ int main( int argc, char *argv[] )
 			destroycmdwin( cmdwin );
 			destroywindow( win_one );
 			destroywindow( win_two );
-			
 		endwin();
 	return 0;
   }

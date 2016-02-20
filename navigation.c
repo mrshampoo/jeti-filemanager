@@ -121,22 +121,22 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 
 		win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
 
-		if( isoffiletype( win->filelist, win->marker[win->mlevel], "<KAT>" ) )
+		if( isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR>" ) || isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR L>" ) || isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR LE>") )
 			{
-  			while( win->filelist->file->d_name[i] == dubbledot[i] && i < 2 )
-   	 			{/*check for dubbledot*/ i++; }
+  				while( win->filelist->file->d_name[i] == dubbledot[i] && i < 2 )
+   	 				{/*check for dubbledot*/ i++; }
 
-    		if( i == 2 )
-    			{ /*dubbledot was found, go back one folder*/
-      			if( strlen( win->wd ) != 1 )
-        			win->wd[strlen(win->wd)-1] = '\0';
+    			if( i == 2 )
+					{ /*dubbledot was found, go back one folder*/
+						if( strlen( win->wd ) != 1 )
+							win->wd[strlen(win->wd)-1] = '\0';
 
-        		while( win->wd[strlen(win->wd)-1] != '/')
-        			{
-          			win->wd[strlen(win->wd)-1] = '\0';
-          		}
+						while( win->wd[strlen(win->wd)-1] != '/')
+							{
+								win->wd[strlen(win->wd)-1] = '\0';
+							}
 
-        		i = 0;
+						i = 0;
 
 						if( win->mlevel > 0 )
 							{
@@ -147,10 +147,10 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 								win->marker[win->mlevel] = -1;
 							}
 
-				strcpy( cmd, win->wd );
-				loadnewdir( win, cmd );
-				playsound( sounds, 1 );
-      		}
+						strcpy( cmd, win->wd );
+						loadnewdir( win, cmd );
+						playsound( sounds, 1 );
+					}
 				else if( i == 1 && strlen(win->filelist->file->d_name) == 1 )
 					{/*singledot*/
 						win->marker[win->mlevel] = -1;
@@ -158,26 +158,26 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 						loadnewdir( win, cmd );
 						playsound( sounds, 2 );
 					}
-    		else
-    			{/*regular folder*/
-				strcpy( cmd, win->wd );
-      			if( win->wd[strlen(win->wd)-1] != '/')
-        			strcat( cmd, "/");
+				else
+    				{/*regular folder*/
+						strcpy( cmd, win->wd );
+						if( win->wd[strlen(win->wd)-1] != '/')
+							strcat( cmd, "/");
 
-          		strcat( cmd, win->filelist->file->d_name );
-          		strcat( cmd, "/");
+						strcat( cmd, win->filelist->file->d_name );
+						strcat( cmd, "/");
 
-				if( loadnewdir( win, cmd ) )
-					{
-							win->mlevel++;
-							win->marker[win->mlevel] = -1;
-							playsound( sounds, 3 );
-					}
-      		}
+						if( loadnewdir( win, cmd ) )
+							{
+								win->mlevel++;
+								win->marker[win->mlevel] = -1;
+								playsound( sounds, 3 );
+							}
+      				}
 				ret = 1;
 			}
 		else
-			{
+			{/*regular file*/
 				while( fileaction->next != NULL ) /*rewind fileactions*/
 					{	fileaction = fileaction->next;	}
 				
@@ -190,26 +190,26 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 				else
 					playsound( sounds, 0 );
 
-				find_and_add_filename( cmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->file->d_name );
+				find_and_add_fp( cmd, cmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->file->d_name );
 
 				if( cmd[0] != '\0' )
 					{
 						strcpy( tmpcmd, win->wd );
-        		if( win->wd[strlen(win->wd)-1] != '/' )
-          		{
-            		strcat( tmpcmd, "/" );
-          		}
-        		strcat( tmpcmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->file->d_name );
+        				if( win->wd[strlen(win->wd)-1] != '/' )
+          					{
+            					strcat( tmpcmd, "/" );
+          					}
+        				strcat( tmpcmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->file->d_name );
 
 						addslash( cmd, tmpcmd );
 
-						strcat( cmd, " > /dev/null 2>&1" );
+						strcat( cmd, " > /dev/null 2>&1 &" );
 						win->marker[win->mlevel] = -1;
-        		system( cmd );
+        				system( cmd );
 
 					}
 
-        ret = 1;
+				ret = 1;
 
 			}
 
@@ -219,7 +219,12 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 
 int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds )
 	{
+		int d = 0;
+		int x = 0;
+		int selected = 0;
 		const char *homedir;
+		char cmd[256];
+		char tcmd[256];
 		char dir[SIZE_WORKDIREKTORY];
 
 		if( !strncmp( awin->shortcuts->dir, "$passiv", 7 ) )
@@ -258,6 +263,28 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 
                 strcpy( dir, awin->wd );
             }
+		else if( !strncmp( awin->shortcuts->dir, "$exec", 5 ) )
+			{d+=6;
+
+				find_and_add_dir( cmd, awin->shortcuts->dir +d, awin->wd );
+				strcat( cmd ," > /dev/null 2>&1" );
+
+				for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
+					{
+						awin->filelist = gotoEntry( awin->filelist, x );
+						if( awin->filelist->selected && find_and_add_fp( tcmd, cmd, awin->filelist->file->d_name ) )
+							{
+								if( !selected )
+									chdir( awin->wd );
+
+								selected++;
+								awin->filelist->selected = 0;
+								system( tcmd );
+							}
+					}
+				if( !selected )
+					system( cmd );
+			}
 		else if( !strncmp( awin->shortcuts->dir, "_", 1 ) )
 			{
 				//do nothing: this is the noshortcuts-shortcut
@@ -284,23 +311,26 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 
 		chdir( awin->wd );
 
-		for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
+		if( !access(pwin->wd, W_OK) )
 			{
-				awin->filelist = gotoEntry( awin->filelist, x );
-				if( awin->filelist->selected )
+				for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
 					{
-						strcpy( cmd, "cp ");
-						if( isoffiletype( awin->filelist, awin->filelist->number, "<KAT>" ) )
-								strcat( cmd, "-r " );
+						awin->filelist = gotoEntry( awin->filelist, x );
+						if( awin->filelist->selected )
+							{
+								strcpy( cmd, "cp ");
+								if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
+									strcat( cmd, "-r " );
 
-						addslash( cmd, awin->filelist->file->d_name );
-						strcat( cmd, " " );
-						strcat( cmd, pwin->wd );
+								addslash( cmd, awin->filelist->file->d_name );
+								strcat( cmd, " " );
+								strcat( cmd, pwin->wd );
 
-						system( cmd );
+								system( cmd );
 						
-						awin->filelist->selected = 0;
-						repaint++;
+								awin->filelist->selected = 0;
+								repaint++;
+							}
 					}
 			}
 
@@ -323,23 +353,26 @@ int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 
     chdir( awin->wd );
 
-    for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
-      {
-        awin->filelist = gotoEntry( awin->filelist, x );
-        if( awin->filelist->selected )
-          {
-            strcpy( cmd, "mv ");
+	if( !access(pwin->wd, R_OK) )
+		{
+    		for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
+      			{
+        			awin->filelist = gotoEntry( awin->filelist, x );
+        			if( awin->filelist->selected )
+          				{
+            				strcpy( cmd, "mv ");
 
-            addslash( cmd, awin->filelist->file->d_name );
-            strcat( cmd, " " );
-            strcat( cmd, pwin->wd );
+            				addslash( cmd, awin->filelist->file->d_name );
+            				strcat( cmd, " " );
+            				strcat( cmd, pwin->wd );
 
-            system( cmd );
+            				system( cmd );
 
-            awin->filelist->selected = 0;
-            repaint++;
-          }
-      }
+            				awin->filelist->selected = 0;
+            				repaint++;
+          				}
+      			}
+		}
 
 		if( repaint )
 			{
@@ -360,23 +393,26 @@ int removefiles( Windowtype *awin, soundeffectType *sounds )
 
     chdir( awin->wd );
 
-    for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
-      {
-        awin->filelist = gotoEntry( awin->filelist, x );
-        if( awin->filelist->selected )
-          {
-            strcpy( cmd, "rm ");
-            if( isoffiletype( awin->filelist, awin->filelist->number, "<KAT>" ) )
-                strcat( cmd, "-r " );
+	if( !access(awin->wd, R_OK) )
+		{
+    		for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
+      			{
+        			awin->filelist = gotoEntry( awin->filelist, x );
+        			if( awin->filelist->selected )
+          				{
+            				strcpy( cmd, "rm ");
+            				if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
+                				strcat( cmd, "-r " );
 
-            addslash( cmd, awin->filelist->file->d_name );
+            				addslash( cmd, awin->filelist->file->d_name );
 
-            system( cmd );
+            				system( cmd );
 
-            awin->filelist->selected = 0;
-            repaint++;
-          }
-      }
+            				awin->filelist->selected = 0;
+            				repaint++;
+          				}
+      			}
+		}
 
 		if( repaint )
 		  {

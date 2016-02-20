@@ -8,7 +8,7 @@ this program is distributed under the terms of the GNU General Public License*/
 	#define _command_window_
 
 	cmdWindowtype *new_cmdwindow( int h, int w, int y, int x, char wd[] );
-	void printcmdwin( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin );
+	int printcmdwin( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin );
 	void clearcmd( cmdWindowtype *cw );
 	void putnewdir( cmdWindowtype *cw, char wd[], char ddir[] );
 	int togglehide( cmdWindowtype *cw );

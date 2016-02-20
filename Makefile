@@ -27,6 +27,8 @@ install: $(BINDIR)/$(TARGET) $(CONFDIR)/$(CONFIG)
 	cp $(BINDIR)/$(TARGET) $(prefix)/bin/
 	mkdir -p $(prefix)/$(CONFDIR)
 	cp $(CONFDIR)/$(CONFIG) $(prefix)/$(CONFDIR)/
+	cp $(CONFDIR)/README $(prefix)/$(CONFDIR)/
+	cp $(CONFDIR)/CHANGELOG $(prefix)/$(CONFDIR)/
 
 uninstall: $(prefix)/bin/$(TARGET) $(prefix)/$(CONFDIR)
 	rm $(prefix)/bin/$(TARGET)
