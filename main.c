@@ -54,6 +54,7 @@ int main( int argc, char *argv[] )
 		void catchexit( int dummy )
 			{
 				jetilog( 3, "catched exit..\n" );
+				repaint = -1;
 				EXIT = 1;
 			}
 
@@ -83,6 +84,8 @@ int main( int argc, char *argv[] )
 			activwin = win_one;
 			passivwin = win_two;
 			cmdwin = new_cmdwindow( 3, COLS-4, LINES/2, 2, activwin->wd );
+			nodelay( win_one->win, TRUE );
+            nodelay( win_two->win, TRUE );
 
 				keypad( activwin->win, TRUE );
 				mousemask( ALL_MOUSE_EVENTS, NULL );
@@ -267,10 +270,10 @@ int main( int argc, char *argv[] )
 								case 0xA:		repaint = enter( activwin, actions, sounds );
 												break;
 
+								//Esc
 								case 0x1B: 		activwin->marker[activwin->mlevel] = -1;
 												activwin->slide[activwin->mlevel] = 0;
 												repaint = 1;
-												//EXIT = 1;
 												break;
 
 								case ':':		keypad( activwin->win, FALSE );
@@ -296,8 +299,9 @@ int main( int argc, char *argv[] )
 												break;
 							}
 						
-						if( repaint )
+						if( repaint && !EXIT )
 							{
+								jetilog( 3, "repaint\n" );
 								clearwindow( activwin );
                 				printwindow( activwin );
 								
@@ -306,7 +310,6 @@ int main( int argc, char *argv[] )
 
                 				repaint = 0;
 							}
-						
 					}
 
 			clearEnvironmett_sounds( sounds );

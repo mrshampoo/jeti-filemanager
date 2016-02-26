@@ -307,7 +307,11 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 	{
 		int x = 0;
 		int repaint = 0;
+		char empty[1];
 		char cmd[COMMANDLENGTH];
+		char dir[COMMANDLENGTH];
+
+		empty[0] = '\0';
 
 		chdir( awin->wd );
 
@@ -318,13 +322,15 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 						awin->filelist = gotoEntry( awin->filelist, x );
 						if( awin->filelist->selected )
 							{
+								strcpy( dir, empty );
 								strcpy( cmd, "cp ");
 								if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
 									strcat( cmd, "-r " );
 
 								addslash( cmd, awin->filelist->file->d_name );
 								strcat( cmd, " " );
-								strcat( cmd, pwin->wd );
+								addslash( dir, pwin->wd );
+								strcat( cmd, dir );
 
 								system( cmd );
 						
@@ -349,22 +355,27 @@ int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 	{
 		int x = 0;
     int repaint = 0;
+	char empty[1];
     char cmd[COMMANDLENGTH];
+	char dir[COMMANDLENGTH];
 
+	empty[0] = '\0';
     chdir( awin->wd );
 
-	if( !access(pwin->wd, R_OK) )
+	if( !access(pwin->wd, W_OK) )
 		{
     		for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
       			{
         			awin->filelist = gotoEntry( awin->filelist, x );
         			if( awin->filelist->selected )
           				{
+							strcpy( dir, empty );
             				strcpy( cmd, "mv ");
 
             				addslash( cmd, awin->filelist->file->d_name );
             				strcat( cmd, " " );
-            				strcat( cmd, pwin->wd );
+							addslash( dir, pwin->wd );
+            				strcat( cmd, dir );
 
             				system( cmd );
 
@@ -393,7 +404,7 @@ int removefiles( Windowtype *awin, soundeffectType *sounds )
 
     chdir( awin->wd );
 
-	if( !access(awin->wd, R_OK) )
+	if( !access(awin->wd, W_OK) )
 		{
     		for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
       			{

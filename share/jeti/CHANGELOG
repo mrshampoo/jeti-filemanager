@@ -1,18 +1,8 @@
-changes done from verison 1.0 to 1.1
+changes done from verison 1.1 to 1.1.1
 	changes that are a bit buggy are tabed in.
 
-	* copying, moving and deleting, now checks for writpermissions.
-	* <KAT>, is now changed to <DIR>.
-	* commandwindow, now sumons repaint.
-	* file main.c and command-window.c, got its tabs straitend up. (this file looked like a mess)
-	* included this CHANGELOG file.
-	* added copying of README and CHANGELOG to the makefile.
-	* removed usles gotos from main.
-		* can now cd in to linked directorys.
-	* shows linkadress if showhidden is on (will probobly be changed in the future)
-		* Esc doesnot exit jeti anylonger, Esc is now used to rewind dirs to get back at top in huge filenumbers.
-	* there is now an option $exec in shortcutfeeld with a extra option $dir that returns curent directory.
-	* using with $exec, you can now also use $f for curently selected filenames.
-	* removed function find_and_add_filename, since find_and_add_fp alredy does the same thing.
-	* removed $d parameter from find_and_add_fp, we are now using find_and_add_dir for that.
-
+	* fixed bugg with ctrl^C, now exits at once.
+	* fixed bugg move checks for read perrmission, changed to wright permisson
+	* fixed bugg delete checks for read perrmission, changed to wright permisson
+	* fixed bugg copy checks for read perrmission, changed to wright permisson
+	* fixed bugg "cant copy or move, from or to dir", now adds slashes to dirnames

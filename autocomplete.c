@@ -16,19 +16,22 @@ void addslash( char st[], char cmd[] )
 
 			for( i = 0; i < strlen(cmd); i++ )
 				{
-        	if( cmd[i] == ' '
-          ||  cmd[i] == '('
-          ||  cmd[i] == ')'
-          ||  cmd[i] == '['
-          ||  cmd[i] == ']'
-          ||  cmd[i] == '<'
-          ||  cmd[i] == '>' )
-          	{
-            	strcat( tmpcmd, "\\" );
-            }
+					if( cmd[i] == ' '
+					||  cmd[i] == '\n'
+					||  cmd[i] == '\t'
+					||  cmd[i] == '\0'
+				 	||  cmd[i] == '('
+         			||  cmd[i] == ')'
+					||  cmd[i] == '['
+					||  cmd[i] == ']'
+					||  cmd[i] == '<'
+					||  cmd[i] == '>' )
+          				{
+            				strcat( tmpcmd, "\\" );
+            			}
 
 					c[0] = cmd[i];
-          strcat( tmpcmd, c );
+					strcat( tmpcmd, c );
 				}
 
 			if( &st[0] == &cmd[0]  )

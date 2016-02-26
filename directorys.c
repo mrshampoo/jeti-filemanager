@@ -157,8 +157,8 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 										}
 									else
 										{
-											strcpy( obj->filetype, "LinkER");
-											//strcpy( obj->filetype, "<DIR L>");
+											//strcpy( obj->filetype, "LinkER");
+											strcpy( obj->filetype, "<DIR L>");
 										}
 
 									strcpy( obj->presentation, obj->file->d_name );

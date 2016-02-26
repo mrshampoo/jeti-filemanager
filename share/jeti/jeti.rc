@@ -4,8 +4,8 @@ window.startdirectory: cwd
 
 -= TABS =-=-=-=-=-=-=-=-=->
 window.tab.left: selected
-window.tab.left: presentation
-#window.tab.left: filename
+#window.tab.left: presentation
+window.tab.left: filename
 window.tab.right: filetype
 window.tab.right: mode
 window.tab.right: size
