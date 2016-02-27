@@ -1,6 +1,6 @@
 TARGET = jeti
 
-prefix = /usr
+DESTDIR = /usr
 
 CONFIG = jeti.rc
 CONFDIR = share/jeti
@@ -24,15 +24,15 @@ $(BINDIR)/$(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) $(LIBS) $^ -o $@
 
 install: $(BINDIR)/$(TARGET) $(CONFDIR)/$(CONFIG)
-	cp $(BINDIR)/$(TARGET) $(prefix)/bin/
-	mkdir -p $(prefix)/$(CONFDIR)
-	cp $(CONFDIR)/$(CONFIG) $(prefix)/$(CONFDIR)/
-	cp $(CONFDIR)/README $(prefix)/$(CONFDIR)/
-	cp $(CONFDIR)/CHANGELOG $(prefix)/$(CONFDIR)/
+	cp $(BINDIR)/$(TARGET) $(DESTDIR)/bin/
+	mkdir -p $(DESTDIR)/$(CONFDIR)
+	cp $(CONFDIR)/$(CONFIG) $(DESTDIR)/$(CONFDIR)/
+	cp $(CONFDIR)/README $(DESTDIR)/$(CONFDIR)/
+	cp $(CONFDIR)/CHANGELOG $(DESTDIR)/$(CONFDIR)/
 
 uninstall: $(prefix)/bin/$(TARGET) $(prefix)/$(CONFDIR)
-	rm $(prefix)/bin/$(TARGET)
-	rm -r $(prefix)/$(CONFDIR)
+	rm $(DESTDIR)/bin/$(TARGET)
+	rm -r $(DESTDIR)/$(CONFDIR)
 
 .PHONY : clean
 clean:
