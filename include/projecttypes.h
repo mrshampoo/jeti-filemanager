@@ -12,11 +12,19 @@ this program is distributed under the terms of the GNU General Public License*/
 	#define CMDHISTORY 10
 	#define SIZE_HISTORY 50
 	#define SIZE_WORKDIREKTORY 250
-	#define NUMBEROFCOLORS 9
+	#define NUMBEROFCOLORS 10
 	#define PRESENTATION_LENGTH 200
 	#define TYPE_LENGTH 10
 	#define DIRLENGTH 250
 	#define SIZE_SIZE 5
+
+	#ifndef _globals_
+		char TERMINALNAME[250];
+		char CONFIGNAME[250];
+	#else
+		extern char TERMINALNAME[250];
+		extern char CONFIGNAME[250];
+	#endif
 
 	typedef enum printoption 
 		{ 
@@ -31,7 +39,7 @@ this program is distributed under the terms of the GNU General Public License*/
 
   	typedef struct tabtype
     	{
-			int n; 
+			int n; 	//order number for when the tab was read, for debugging purpose only
       		int start;
       		int length;
       		printoption opt;
@@ -58,7 +66,7 @@ this program is distributed under the terms of the GNU General Public License*/
 
     typedef struct soundeffectType
         {
-            int action;
+            int action; 	//action number, that corresponds to a specific action
             char sound[DIRLENGTH];
             struct soundeffectType* next;
             struct soundeffectType* prev;
@@ -79,12 +87,11 @@ this program is distributed under the terms of the GNU General Public License*/
 
 	typedef struct Windowtype
         {
-            /*WINDOW *win;*/
             int h,w,x,y;
-            int hiden;
-            int showhidden;
-			int noexe;
-            int mlevel;
+            int hidden; 				//is the window hidden or not?
+            int showhidden;				//show hidden files and link paths
+			int noexe;					//do not execute executables, use fileaction on them instead
+            int mlevel;					//marker level, keeps track of wish directory the marker height was stored
             int marker[SIZE_HISTORY];
             int slide[SIZE_HISTORY];
             int color[NUMBEROFCOLORS];
@@ -101,9 +108,9 @@ this program is distributed under the terms of the GNU General Public License*/
             WINDOW *win;
             int h,w,x,y;
             int cruser;
-            int hiden;
+            int hidden;
             char wd[SIZE_WORKDIREKTORY];
-            char ddir[SIZE_WORKDIREKTORY];
+            char ddir[SIZE_WORKDIREKTORY];	//destination dir, keeps track of the passiv windows workdirectory
             char currentcmd[CMDHISTORY+1][COMMANDLENGTH];
         }cmdWindowtype;
 

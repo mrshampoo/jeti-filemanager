@@ -1,5 +1,4 @@
 install:
-    edit the Makefile, and shange prefix to your liking.
 
     make
     sudo make install

@@ -10,6 +10,7 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "directorys.h"
 #include "autocomplete.h"
 #include "soundeffects.h"
+#include "systemlog.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -22,13 +23,14 @@ this program is distributed under the terms of the GNU General Public License*/
 int scrollupp( Windowtype *win, soundeffectType *sounds )
 	{
 		if( win->slide[win->mlevel] > 0 )
-    	{
-      	win->slide[win->mlevel]--;
-		playsound( sounds, 5 );
-        return 1;
-      }
+			{
+				win->slide[win->mlevel]--;
+				playsound( sounds, 5 );
+				return 1;
+			}
 		else
 			{
+				//slide reached the top
 				return 0;
 			}
 	}
@@ -36,34 +38,37 @@ int scrollupp( Windowtype *win, soundeffectType *sounds )
 int scrolldown( Windowtype *win, soundeffectType *sounds )
 	{
 		if( win->slide[win->mlevel] + win->h -4 < printtotalnr( win->filelist ) )
-    	{
-      	win->slide[win->mlevel]++;
-		playsound( sounds, 6 );
-        return 1;
-      }
+			{
+				win->slide[win->mlevel]++;
+				playsound( sounds, 6 );
+				return 1;
+			}
 		else
 			{
+				//slide reached bottom
 				return 0;
 			}
 	}
 
 int stepupp( Windowtype *win, soundeffectType *sounds )
 	{
-    if( win->marker[win->mlevel]-1 <= win->slide[win->mlevel] && win->slide[win->mlevel] > 0 )
-    	{
+		if( win->marker[win->mlevel]-1 <= win->slide[win->mlevel] && win->slide[win->mlevel] > 0 )
+			{
 				win->marker[win->mlevel]--;
-      	win->slide[win->mlevel]--;
-		playsound( sounds, 7 );
-        return 1;
-      }
+				win->slide[win->mlevel]--;
+				playsound( sounds, 7 );
+				return 1;
+			}
 		else if( win->marker[win->mlevel]-1 > 0 && win->marker[win->mlevel] > win->slide[win->mlevel] )
-      {
-        win->marker[win->mlevel]--;
-		playsound( sounds, 7 );
-        return 1;
-      }
+			{
+				//slide is at the top
+				win->marker[win->mlevel]--;
+				playsound( sounds, 7 );
+				return 1;
+			}
 		else
 			{
+				//marker reached the top
 				return 0;
 			}
 	}
@@ -71,20 +76,23 @@ int stepupp( Windowtype *win, soundeffectType *sounds )
 int stepdown( Windowtype *win, soundeffectType *sounds )
 	{
 		if( win->marker[win->mlevel] != printtotalnr( win->filelist ) && win->marker[win->mlevel]-1 < win->h + win->slide[win->mlevel] -4 )
-    	{
-      	win->marker[win->mlevel]++;
-		playsound( sounds, 8 );
-        return 1;
-      }
-    else if( win->marker[win->mlevel] != printtotalnr( win->filelist ) && win->marker[win->mlevel]-1 >= win->h + win->slide[win->mlevel] -4 )
-    	{
+			{
+				//slide reached the bottom
 				win->marker[win->mlevel]++;
-      	win->slide[win->mlevel]++;
-		playsound( sounds, 8 );
-        return 1;
-      }
+				playsound( sounds, 8 );
+				return 1;
+			}
+		else if( win->marker[win->mlevel] != printtotalnr( win->filelist ) && win->marker[win->mlevel]-1 >= win->h + win->slide[win->mlevel] -4 )
+			{
+	
+				win->marker[win->mlevel]++;
+				win->slide[win->mlevel]++;
+				playsound( sounds, 8 );
+				return 1;
+			}
 		else
 			{
+				//marker reatched bottom
 				return 0;
 			}
 	}
@@ -92,6 +100,8 @@ int stepdown( Windowtype *win, soundeffectType *sounds )
 int selectfile( Windowtype *win, soundeffectType *sounds )
 	{
 		win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
+
+		//toggle select
 		if( win->filelist->selected == 0 )
 			{
 				win->filelist->selected = 1;
@@ -111,7 +121,8 @@ int selectfile( Windowtype *win, soundeffectType *sounds )
 int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds )
 	{
 		int i = 0;
-		int ret;
+		int repaint = 0;
+		int notexec = 0;
 
 		char dubbledot[] = "..";
 		char tmpcmd[250];
@@ -174,26 +185,43 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 								playsound( sounds, 3 );
 							}
       				}
-				ret = 1;
+				repaint = 1;
 			}
 		else
 			{/*regular file*/
-				while( fileaction->next != NULL ) /*rewind fileactions*/
+
+				//rewind fileactions
+				while( fileaction->next != NULL )
 					{	fileaction = fileaction->next;	}
-				
+
+				//copy fileactions				
 				while( !isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) && fileaction->prev != NULL )
 					{ fileaction = fileaction->prev; }
 					strcpy( cmd, fileaction->Action );
 
+				//check executable or if no atribute was found
 				if( S_IEXEC & win->filelist->status && win->noexe == 0 )
-          			{ strcpy( cmd, "lxterminal -e " ); playsound( sounds, 4 ); }
+					{
+          				strcpy( cmd, TERMINALNAME );
+						strcat( cmd, " -e " );
+						printf( cmd );
+					}
+				else if( !isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) )
+					{
+						memset( cmd, 0, sizeof(cmd));
+						cmd[0] = '\0';
+						notexec = 1;
+					}
 				else
-					playsound( sounds, 0 );
+					{
+						notexec = 1;
+					}
 
 				find_and_add_fp( cmd, cmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->file->d_name );
 
 				if( cmd[0] != '\0' )
 					{
+						//add path
 						strcpy( tmpcmd, win->wd );
         				if( win->wd[strlen(win->wd)-1] != '/' )
           					{
@@ -203,17 +231,24 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 
 						addslash( cmd, tmpcmd );
 
+						//make silent and free
 						strcat( cmd, " > /dev/null 2>&1 &" );
 						win->marker[win->mlevel] = -1;
+
+						if( notexec )
+							playsound( sounds, 0 );
+						else
+							playsound( sounds, 4 );
+
         				system( cmd );
+						repaint = 1;
+						systemlog( 1, cmd );
 
 					}
 
-				ret = 1;
-
 			}
 
-		return ret;
+		return repaint;
 
 	}
 
@@ -324,11 +359,13 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 							{
 								strcpy( dir, empty );
 								strcpy( cmd, "cp ");
+
 								if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
 									strcat( cmd, "-r " );
 
 								addslash( cmd, awin->filelist->file->d_name );
 								strcat( cmd, " " );
+
 								addslash( dir, pwin->wd );
 								strcat( cmd, dir );
 

@@ -15,7 +15,8 @@ this program is distributed under the terms of the GNU General Public License*/
 
 dirEntry *getlast( dirEntry *filelist )
 	{
-		jetilog( 4, "enterd getlast.\n" );
+		systemlog( 4, "enterd getlast.\n" );
+
 		if( filelist->next != NULL )
 			{
 				filelist = getlast( filelist->next );
@@ -26,7 +27,8 @@ dirEntry *getlast( dirEntry *filelist )
 
 dirEntry *getlast_and_add( dirEntry *filelist )
 	{
-		jetilog( 4, "enterd getlast_and_add.\n" );
+		systemlog( 4, "enterd getlast_and_add.\n" );
+
 		filelist->number++;
     	if( filelist->next != NULL )
       		{
@@ -41,20 +43,20 @@ void clearEntrys( dirEntry *filelist )
 	{
 		dirEntry *prev;
 
-		jetilog( 4, "clearEntrys.\n" );
+		systemlog( 4, "clearEntrys.\n" );
 
 		if( filelist != NULL )
 			{
 				filelist = getlast( filelist );
         
 				while( filelist->prev != NULL )
-          {
-            prev = filelist;
-            filelist = filelist->prev;
+					{
+						prev = filelist;
+						filelist = filelist->prev;
 						filelist->next = NULL;
-            free( prev );
+						free( prev );
 						prev = NULL;
-          }
+					}
 
 				free( filelist );
 				filelist = NULL;
@@ -67,14 +69,15 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 			len = 1,
 			dotsize = 1; /*obs: not a bool*/
 
-		char path[500];
-		char link_target_path[256];
+		char path[SIZE_WORKDIREKTORY];
+		char link_target_path[SIZE_WORKDIREKTORY];
 		dirEntry *obj;
 		struct stat buf;
 		struct stat linkbuf;
 
-			jetilog( 3, "Get entrys!...\n" );
-			
+			systemlog( 3, "Get entrys!...\n" );
+		
+			//create a new list by mallocin the first dirrentry	
 			clearEntrys( filelist );
 			filelist = malloc( sizeof(dirEntry) );
 				filelist->next = NULL;
@@ -105,7 +108,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 					else if( S_ISREG(buf.st_mode) )
 						{/*regular file*/
 							dotsize = 1;
-							strcpy( obj->filetype, "          ");
+							strcpy( obj->filetype, "         ");
 							for( x = strlen(obj->file->d_name); x >= 0; x-- )
 								{
 									if( obj->file->d_name[x] == '.' && x != 0 && dotsize != 0 )
@@ -119,11 +122,11 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 											dotsize++;
 										}	
 									else if( dotsize == 0 )
-										{
+										{/*put the rest (name) in the presentation*/
 											obj->presentation[x] = obj->file->d_name[x]; 
 										}
 									else
-										{
+										{/*filetype to big or none existing*/
 											strcpy( obj->presentation, obj->file->d_name );
 											strcpy( obj->filetype, " ");
 											break;
@@ -131,14 +134,14 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 								}
 
 							while( obj->filetype[0] == ' ' )
-								{
+								{/*push filetype text to the left when finnished*/
 									strcpy( obj->filetype, obj->filetype +1 );
 								}
 
 						}
 
 					else if( S_ISLNK(buf.st_mode) )
-						{
+						{//it is a link!
 							if( ( len = readlink( path, link_target_path, sizeof(link_target_path) ) )!= -1 )
 								{
 									link_target_path[len] = '\0';
@@ -157,6 +160,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 										}
 									else
 										{
+											//ERROR: coud not read link path properly
 											//strcpy( obj->filetype, "LinkER");
 											strcpy( obj->filetype, "<DIR L>");
 										}
@@ -201,6 +205,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 
 					obj->number = 1;
 
+					//get id3 tags
 					if( isoffiletype(obj, obj->number, "mp3") 
 					 || isoffiletype(obj, obj->number, "MP3") 
 					 || isoffiletype(obj, obj->number, "ogg")
@@ -208,6 +213,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 					 || isoffiletype(obj, obj->number, "flac"))
 						obj = getid3tags( obj, path );
 
+					//only add objects that should be shown
 					if( SHOWHIDDEN )
 						{	filelist = bubbeladd( filelist , obj );	}
 					else if( ( obj->file->d_name[0] == '.' && strlen(obj->file->d_name) == 1 ) 
@@ -215,8 +221,9 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 								|| ( obj->file->d_name[0] != '.' ) )
 								{	filelist = bubbeladd( filelist , obj );	}
 					else
-						{	/*free( obj );*/	}
+						{	free( obj );	}
 
+					//prepare for next file
 					obj = malloc( sizeof(dirEntry) );
 					obj->prev = NULL;
 					obj->next = NULL;
@@ -235,44 +242,45 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 					obj = NULL;
 				}
 
-		jetilog( 3, "Get entrys successfull\n" );
+		systemlog( 3, "Get entrys successfull\n" );
 		return filelist;
 	}
 
 dirEntry *bubbeladd( dirEntry *filelist, dirEntry *obj )
 	{
 		int x;
-		int setroot = 0;
+		int rooted = 0; //true when the object has found its home
 
-		jetilog( 3, "bubbleadd entry\n" );
-		while( !setroot )
+		systemlog( 3, "bubbleadd entry\n" );
+		while( !rooted )
 			{
+				//place all <DIR>'s at top and sort them separatly
 				if( filelist->filetype[0] == '<' && obj->filetype[0] != '<' )
-					{
-						setroot = 1;
-            goto sort_action;
+					{ //non_dir_object is compared to a dir: drop righr at the spot (if we go futher we are at dirpart of list)
+						rooted = 1;
+						goto sort_action;
 					}
 				else if( filelist->filetype[0] != '<' && obj->filetype[0] == '<' )
-					{
+					{// a dir_obj is compared to a nondir: push obj higher to list_dir_part
 						goto sort_action;
 					}
 
+				//Do the comparation
 				for( x = 0; x < PRESENTATION_LENGTH; x++ )
 					{
 						if( filelist->presentation[x] < obj->presentation[x] )
-              {
-                setroot = 1;
-                goto sort_action;
-              }
-            else if( filelist->presentation[x] > obj->presentation[x] )
-              {
-                goto sort_action;
-              }
+							{
+								rooted = 1;
+								goto sort_action;
+							}
+						else if( filelist->presentation[x] > obj->presentation[x] )
+							{
+								goto sort_action;
+							}
 					}
 
-				sort_action:
-				/* do swappings*/
-				if( filelist->number != 0 && setroot )
+				sort_action: /* do swappings or push list forward*/
+				if( filelist->number != 0 && rooted )
 					{
 							obj->prev = filelist;
 							if( filelist->next != NULL )
@@ -288,17 +296,17 @@ dirEntry *bubbeladd( dirEntry *filelist, dirEntry *obj )
 							filelist->next = obj;
 							filelist = filelist->next;
 					}
-				else if( filelist->number != 0 && filelist->prev == NULL && !setroot )
+				else if( filelist->number != 0 && filelist->prev == NULL && !rooted )
 					{/*is biggest*/
 						obj->next = filelist;
 						filelist->prev = obj;
 						filelist = filelist->prev;
-						setroot = 1;
+						rooted = 1;
 					}
 				else if( filelist->number == 0 )
 					{/*is first*/
 						filelist = obj;
-						setroot = 1;
+						rooted = 1;
 					}
 				else
 					{/*is bigger*/
@@ -306,31 +314,32 @@ dirEntry *bubbeladd( dirEntry *filelist, dirEntry *obj )
 					}
 			}
 
+		//update listnumbers
 		if( filelist->next != NULL )
 			filelist = getlast_and_add( filelist->next );
 
-		jetilog( 3, "bubbleadd entry successful" );
+		systemlog( 3, "bubbleadd entry successful" );
 		return filelist;
 
 	}
 
 dirEntry *gotoEntry( dirEntry *filelist, int filenr )
 	{
-		jetilog( 4, "enterd gotoentry\n" );
+		systemlog( 4, "enterd gotoentry" );
 		while( filelist->number != filenr )
 		{
-				if( filenr > filelist->number && filelist->next != 0 )
+				if( filenr > filelist->number && filelist->next != NULL )
 					{
 						filelist = filelist->next;
 					}
-				else if( filenr < filelist->number  && filelist->prev != 0 )
+				else if( filenr < filelist->number  && filelist->prev != NULL )
 					{
 						filelist = filelist->prev;
 					}
 				else
 					{
+						systemlog( 1, "ERROR: gotoEntry: out of range");
 						break;
-						/*snopp nÃtt gick fel*/
 					}
 		}
 		return filelist;
@@ -349,17 +358,17 @@ dirEntry *getid3tags( dirEntry *obj, char path[] )
 
 		FILE *fp;
 
-		jetilog( 3, "getid3tags...\n" );
+		systemlog( 3, "getid3tags...\n" );
 
 		fp = fopen( path, "rb" );
- 			if( fseek( fp, -128, SEEK_END ) ||
+			if( fseek( fp, -128, SEEK_END ) ||
 				fread( id3_buf, sizeof(char), sizeof(id3_buf), fp ) != 1 )
 				{
 					readsucces = 0; 
-					jetilog( 1, "ERORR: fseek or fread unsuccess full: id3tag\n" ); 
+					systemlog( 1, "ERORR: fseek or fread unsuccess full: id3tag\n" ); 
 				}
 
-     	if( readsucces && ( id3_buf[0] == 'T' && id3_buf[1] == 'A' && id3_buf[2] == 'G' ) )
+		if( readsucces && ( id3_buf[0] == 'T' && id3_buf[1] == 'A' && id3_buf[2] == 'G' ) )
      		{
 				strncpy( title, id3_buf+3, 30 );
 					strcat( title, "\0" );
@@ -374,7 +383,7 @@ dirEntry *getid3tags( dirEntry *obj, char path[] )
 
 					if( strlen( artist ) || strlen( title ) || strlen( year ) || strlen( album ) || strlen( comment ) )
 						{
-							jetilog( 5, "gott title/artist/album/year/comment\n" );
+							systemlog( 5, "gott title/artist/album/year/comment\n" );
 							strcpy( obj->presentation, "" );
 						}
 
@@ -412,27 +421,27 @@ dirEntry *getid3tags( dirEntry *obj, char path[] )
 
     fclose( fp );
 
-		jetilog( 3, "getid3tags successfull\n" );
+		systemlog( 3, "getid3tags successfull\n" );
 
 		return obj;
 	}
 
 int printtotalnr( dirEntry *filelist )
 	{
-		jetilog( 4, "printtotalnr\n" );
+		systemlog( 4, "printtotalnr\n" );
 		filelist = getlast( filelist );
 		return filelist->number;
 	}
 
 int printCurrentnr( dirEntry *filelist )
 	{
-		jetilog( 4, "printCurrentnr\n" );
+		systemlog( 4, "printCurrentnr\n" );
 		return filelist->number;
 	}
 
 int printfiletypelenght( dirEntry *filelist, int filenr )
 	{
-		jetilog( 4, "printfiletypelenght\n" );
+		systemlog( 4, "printfiletypelenght\n" );
 		if( filenr != filelist->number )
       { filelist = gotoEntry( filelist, filenr ); }
 
@@ -460,16 +469,16 @@ int isoffiletype( dirEntry *filelist, int filenr, char type[] )
 		int yes = 1,
 				x = 0;
 
-		jetilog( 4, "isoffiletype\n" );
+		systemlog( 4, "isoffiletype\n" );
 
 		if( filenr != filelist->number )
-      { filelist = gotoEntry( filelist, filenr ); }
+			{ filelist = gotoEntry( filelist, filenr ); }
 
 		for( x = strlen(type); x >= 0; x-- )
-		{
-			if( type[x] != filelist->filetype[x] )
-      { yes = 0; }
-		}
+			{
+				if( type[x] != filelist->filetype[x] )
+					{ yes = 0; }
+			}
 
 		return yes;
 	}

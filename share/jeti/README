@@ -58,18 +58,21 @@ basic usage:
 					Example: showing selected pictures in a slide show.
 						"feh -F $f; sleep 3s"
 
-			directory variable "$dir":
+			directory variable "$d":
 				$d is the destination directory. It takes its path from the passive window. (It is the same path shown in the command widows bottom)
 				The command will be executed once fore every file selected.
 
 the jeti.rc file:
 	install:
 		"mv ./jeti.rc ~/.jeti.rc"
-		or "mv ./jeti.rc $HOME/.jeti.rc"
-		or "mv ./jeti.rc $XDG_CONFIG_HOME/"
-		or "mv ./jeti.rc $XDG_DATA_DIRS/jeti/"
+		or "mv share/jeti/jeti.rc $HOME/.jeti.rc"
+		or "mv share/jeti/jeti.rc $XDG_CONFIG_HOME/"
+		or "mv share/jeti/jeti.rc $XDG_DATA_DIRS/jeti/"
 
 	general:
+		terminal.name: <terminal>
+			for executing of scripts and other binarys.
+
 		window.showhiden: <bool>
 			0 : don't show hidden files at start up (default)
 			1 : show hidden files at start up
@@ -108,6 +111,8 @@ the jeti.rc file:
 			colorates files
 
 			 available <filetypes> are:
+				background :
+					background color
 				katalog :
 					catalogs.
 				executeble :
@@ -162,7 +167,7 @@ the jeti.rc file:
 				$home :
 					teleports you to the home directory of the current user.
 				$exec <command>:
-					executes a console command. here you can also use special variables $f and $dir (see commandwindow for more information).
+					executes a console command. here you can also use special variables $f and $d, NOTE: $d is the directory of the activ window in this case (see commandwindow for more information).
 
 	sound effects:
 		sound.enter.<action>: "<file path>"

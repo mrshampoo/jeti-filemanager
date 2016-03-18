@@ -16,12 +16,16 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "command-window.h"
 #include "handleflags.h"
 
+#define _globals_
+
 int main( int argc, char *argv[] )
   {
+		/*3 states*/
+		int press_action_one = 0; //left mouse action, 0=nothing, +=pressed once, -=pressed twise.
+		int press_action_two = 0; //right mouse action, 0=nothing, +=pressed once, -=pressed twise.
+		int press_action_shortcuts = 0; //0=nothing, +=pressed once.
+
 		/*booleans*/
-		int press_action_one = 0;
-		int press_action_two = 0;
-		int press_action_shortcuts = 0;
 		int repaint = 0;
 		int EXIT = 0;
 
@@ -53,32 +57,37 @@ int main( int argc, char *argv[] )
 		
 		void catchexit( int dummy )
 			{
-				jetilog( 3, "catched exit..\n" );
+				systemlog( 3, "catched exit..\n" );
 				repaint = -1;
 				EXIT = 1;
 			}
 
 		handle_flags( argc, argv );
+		get_terminalname();
 
 		/*Set consoletitle*/
 		printf("%c]0;%s%c", '\033', "Jeti!", '\007');
 
 		initscr();
 
+			/*setup curses*/
 			cbreak();
 			noecho();
 			nodelay(stdscr, TRUE);
 			curs_set(0);
 
+			/*signal handeling*/
 			signal( SIGINT, catchexit ); //Ctrl-C
 			signal( SIGQUIT, catchexit ); //ex. errors
 			signal( SIGTERM, catchexit ); //got a polite exit request
 			signal( SIGHUP, catchexit ); //terminal exit (the X button)
 			signal( SIGWINCH, catchresize ); //terminal rezised
 
+			/*initiate stuff*/
 			actions = init_fileAction();
 			sounds = init_soundeffects();
 
+			/*create windows*/
 			win_one = newwindow( LINES, COLS/2, 0, 0 );
 			win_two = newwindow( LINES, COLS/2, 0, COLS/2 );
 			activwin = win_one;
@@ -267,6 +276,7 @@ int main( int argc, char *argv[] )
 												keypad( activwin->win, TRUE );
 												break;
 
+								//Enter/Return
 								case 0xA:		repaint = enter( activwin, actions, sounds );
 												break;
 
@@ -301,7 +311,7 @@ int main( int argc, char *argv[] )
 						
 						if( repaint && !EXIT )
 							{
-								jetilog( 3, "repaint\n" );
+								systemlog( 3, "repaint\n" );
 								clearwindow( activwin );
                 				printwindow( activwin );
 								

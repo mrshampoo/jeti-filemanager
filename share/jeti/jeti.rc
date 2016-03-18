@@ -1,4 +1,5 @@
 -= GENERAL =-=-=-=-=-=-=->
+terminal.name: xterm
 window.showhiden: 0
 window.startdirectory: cwd
 
@@ -12,8 +13,9 @@ window.tab.right: size
 window.tab.right: nothing
 
 -= COLORING =-=-=-=-=-=-=->
+window.color.background: -1
 window.color.default: -1
-window.color.katalog: 7
+window.color.katalog: 4
 window.color.executeble: 2
 window.color.link: 6
 window.color.fifo: 3
@@ -23,39 +25,30 @@ window.color.error: 1
 window.color.selected: 1
 
 -= TYPE ACTION =-=-=-=-=->
-file.type: "mplayer -fs " avi,flv,mp4,wmv
-file.type: "audacious -e " mp3,MP3,ogg,OGG,mod,MOD,vma,VMA,spc
-file.type: "aplay " wav,WAV
-file.type: "chromium " html
-file.type: "zathura " pdf,cbr
-file.type: "feh " jpg,jpeg,png,bmp,gif
-file.type: "soffice " odt
-file.type: "nestopia " nes,NES
-file.type: "lxterminal -e unzip " zip,ZIP
-file.type: "lxterminal --title=$f -e vim " c,h,rc,txt,conf,log
+#example: file.type: "lxterminal --title=$f -e vim " c,h,rc,txt,conf,log
 
 -= SHORTCUTS =-=-=-=-=->
 window.shortcut: 'H' "$hidden"
 window.shortcut: 'E' "$noexe"
 window.shortcut: 'M' "$mute"
 window.shortcut: 'P' "$passiv"
-window.shortcut: 'T' "$exec feh $f; sleep 2s"
 window.shortcut: '~' "$home"
 window.shortcut: '/' "/"
 
 -= SOUNDEFFECTS =-=-=-=-=->
-sound.enter.singledot: "/home/pingu/sounds/laser_gun_2.wav"
-sound.enter.doubledot: "/home/pingu/sounds/misc_menu_4.wav"
-sound.enter.kat: "/home/pingu/sounds/Menu\ Selection\ Click.wav"
-sound.enter.executeble: "/home/pingu/sounds/laser_gun_2.wav"
+#example: sound.enter.singledot: "/usr/share/sounds/laser_gun_2.wav"
+#sound.enter.singledot:
+#sound.enter.doubledot: 
+#sound.enter.kat: 
+#sound.enter.executeble: 
 #sound.enter.scrollupp: 
 #sound.enter.scrolldown: 
-sound.enter.stepupp: "/home/pingu/sounds/key01.wav"
-sound.enter.stepdown: "/home/pingu/sounds/key02.wav"
-sound.enter.selectfile: "/home/pingu/sounds/key08.wav"
-sound.enter.copyfiles: "/home/pingu/sounds/load.wav"
-sound.enter.movefiles: "/home/pingu/sounds/load.wav"
+#sound.enter.stepupp: 
+#sound.enter.stepdown: 
+#sound.enter.selectfile: 
+#sound.enter.copyfiles:
+#sound.enter.movefiles:
 #sound.enter.removefiles: 
-sound.enter.shortcut: "/home/pingu/sounds/sharp_echo.wav"
+#sound.enter.shortcut:
 
 <-=-=-=-=-=-=-=-=-= END =-

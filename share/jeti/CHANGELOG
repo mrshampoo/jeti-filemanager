@@ -1,8 +1,19 @@
-changes done from verison 1.1 to 1.1.1
+changes done from verison 1.1.1 to 1.1.2
 	changes that are a bit buggy are tabed in.
 
-	* fixed bugg with ctrl^C, now exits at once.
-	* fixed bugg move checks for read perrmission, changed to wright permisson
-	* fixed bugg delete checks for read perrmission, changed to wright permisson
-	* fixed bugg copy checks for read perrmission, changed to wright permisson
-	* fixed bugg "cant copy or move, from or to dir", now adds slashes to dirnames
+	* added color output when using "window.tab.left: filename"
+	* removed a space at line 108 in directorys.c to prevent buffer overflow (thanks pullmoll@github for pointing this out)
+	* some changes to the makefile (thanks pullmoll@github :) )
+	* changed "hiden" to "hidden" in windowtype and cmdwindowtype
+	* added a lots of new comments.
+	* corrected a old forgoten debugg test in printcmdwin: cw->wd to cw->ddir
+	* in environment.c: changed c,d,b,r,l integers to l,i,v,rn,ln to make it not as difficult to read
+	* freed unused mallocations in environment.c (soundeffects, shortcutts)
+ 	* changed name of jetilog to systemlog
+	* buggfix printwindow can no longer call gotoEntry with filenumbers out of range
+	* added posibility to change background color
+	* buggfix: no more color leakage
+	* buggfix: command-window does not segmentarion fault any longer on $f trows
+	* $dir is now $d
+	* added posibilety to use a difrent terminal for executions
+

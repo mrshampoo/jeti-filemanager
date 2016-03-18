@@ -14,27 +14,27 @@ this program is distributed under the terms of the GNU General Public License*/
 
 cmdWindowtype *new_cmdwindow( int h, int w, int y, int x, char wd[] )
 	{
-			int i = 0;
-			cmdWindowtype *cmdwin;
+		int i = 0;
+		cmdWindowtype *cmdwin;
 
-			cmdwin = malloc( sizeof(cmdWindowtype) );
+		cmdwin = malloc( sizeof(cmdWindowtype) );
 
-			cmdwin->win = newwin( h, w, y, x );
-				cmdwin->h = h;
-				cmdwin->w = w;
-				cmdwin->x = x;
-				cmdwin->y = y;
-				cmdwin->hiden = 1;
-				cmdwin->cruser = 0;
+		cmdwin->win = newwin( h, w, y, x );
+			cmdwin->h = h;
+			cmdwin->w = w;
+			cmdwin->x = x;
+			cmdwin->y = y;
+			cmdwin->hidden = 1;
+			cmdwin->cruser = 0;
 			
-			while( i != strlen(wd) )
-        {
-          cmdwin->wd[i] = wd[i];
-          i++;
-        }
-        cmdwin->wd[i] = '\0';
+		while( i != strlen(wd) )
+			{
+				cmdwin->wd[i] = wd[i];
+				i++;
+			}
+		cmdwin->wd[i] = '\0';
 
-			return cmdwin;
+		return cmdwin;
 	}
 
 int printcmdwin( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin )
@@ -44,26 +44,42 @@ int printcmdwin( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin )
 		int EXIT = 0;
 		int cc = 1;
 
-		if( cw->hiden )
+		if( cw->hidden )
 			{
 				clearcmd( cw );
 			}
 		else
-			{ /*dekorations*/
+			{ 
+				//collorate
+				wattron( cw->win, COLOR_PAIR(1) );
+
+				/*dekorations*/
 				box( cw->win, 0, 0 );
+
+				//topp of border, workdirectory of activ window
 				for( x = 0; cw->wd[x] != '\0' && x+2 < cw->w -2; x++ )
 					{
 						mvwprintw( cw->win, 0,x+2,"%c", cw->wd[x] );
 					}
+
+				//bottom of border, destinationdir, workdirectory of passiv window
 				for( x = 0; cw->ddir[x] != '\0' && x+2 < cw->w -2; x++ )
 					{
-						mvwprintw( cw->win, 2,x+2,"%c", cw->wd[x] );
+						mvwprintw( cw->win, 2,x+2,"%c", cw->ddir[x] );
 					}
-				mvwprintw( cw->win, 1, 1, ":_" );
 
+				//print the currentli writen command
+				mvwprintw( cw->win, 1, 1, ":_" );
 				for( x = 0; x < cw->cruser; x++ )
 					{
 						mvwprintw( cw->win, 1,x+2,"%c_", cw->currentcmd[0][x] );
+					}
+
+				//paint the rest of cw witb background color
+				while( x < cw->w -3 )
+					{
+						mvwprintw( cw->win, 1,x+2," " );
+						x++;
 					}
 			}
 
@@ -144,8 +160,8 @@ void clearcmd( cmdWindowtype *cw )
 	{
 		int x,
 			y;
-		if( cw->hiden )
-			{
+		if( cw->hidden )
+			{//wipe all including decorations
 				for( y = 0; y < cw->h; y++ ){
 					for( x = 0; x < cw->w; x++ ){
 	
@@ -155,7 +171,7 @@ void clearcmd( cmdWindowtype *cw )
 				}
 			}
 		else
-			{
+			{//just wipe the window content
 				cw->cruser = 0;
 				memset( cw->currentcmd[0], 0, sizeof cw->currentcmd[0] );
 				for( x = 2; x < cw->w -1; x++ )
@@ -168,49 +184,56 @@ void clearcmd( cmdWindowtype *cw )
 void putnewdir( cmdWindowtype *cw, char wd[], char ddir[] )
 	{
 		int i = 0;
+
+		//update current directory (activwin)
 		while( i != strlen(wd) )
-       {
-         cw->wd[i] = wd[i];
-         i++;
-       }
-       cw->wd[i] = '\0';
+			{
+				cw->wd[i] = wd[i];
+				i++;
+			}
+		cw->wd[i] = '\0';
 
 		i= 0;
 
+		//update destination directory (passivwin)
 		while( i != strlen(ddir) )
 			{
 				cw->ddir[i] = ddir[i];
 				i++;
 			}
-			cw->ddir[i] = '\0';
+		cw->ddir[i] = '\0';
 	}
 
 int togglehide( cmdWindowtype *cw )
 	{
-		if( cw->hiden )
+		if( cw->hidden )
 			{
-				cw->hiden = 0;
+				cw->hidden = 0;
 			}
 		else
 			{
-				cw->hiden = 1;
+				cw->hidden = 1;
 			}
 
-		return cw->hiden;
+		return cw->hidden;
 	}
 
 int trowcmd( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin )
 	{
 		int x = 0;
 		int selections = 0;
+		char cmd[COMMANDLENGTH];
 		char tmpcmd[COMMANDLENGTH];
 		int cc = CMDHISTORY; /*number of commands in memmory*/
+		cmd[0] = '\0';
 		tmpcmd[0] = '\0';
 		
+		//store commands in history
 		while( cc != 1 )
-			{/*remember*/
+			{
+				//always leave a empty command at 0, current at 1, memory at 2
 				if(cc == 2 )
-					{/*always leve a empty command at 0 => current at 1, memory at 2*/
+					{
 						strcpy( cw->currentcmd[cc], cw->currentcmd[0] );
 					}
 				else
@@ -223,21 +246,26 @@ int trowcmd( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin )
 
 		chdir( cw->wd );
 		
-		find_and_add_dir( cw->currentcmd[0], cw->currentcmd[0], pwin->wd );
+		find_and_add_dir( cmd, cw->currentcmd[0], pwin->wd );
+		strcat( cmd ," > /dev/null 2>&1" );
 
+		//trow the command for eatch selected file
 		for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
       		{
 				awin->filelist = gotoEntry( awin->filelist, x );
-				if( awin->filelist->selected && find_and_add_fp( tmpcmd, cw->currentcmd[0], awin->filelist->file->d_name ) )
-					{ 
+				if( awin->filelist->selected && find_and_add_fp( tmpcmd, cmd, awin->filelist->file->d_name ) )
+					{
 						selections++;
+						awin->filelist->selected = 0;
 						system( tmpcmd );
+							
 					}
-				//memset( tmpcmd, 0, sizeof(tmpcmd) );
+				memset( tmpcmd, 0, sizeof(tmpcmd) );
 			}
 
+		//just a regular trow
 		if( !selections )
-			system( cw->currentcmd[0] );
+			system( cmd );
 
 		memset( cw->currentcmd[1], 0, sizeof cw->currentcmd[1] );
 
@@ -246,7 +274,7 @@ int trowcmd( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin )
 
 void destroycmdwin( cmdWindowtype *cw )
 	{
-		cw->hiden = 1;
+		cw->hidden = 1;
 		clearcmd( cw );
 		delwin( cw->win );
 			free( cw );

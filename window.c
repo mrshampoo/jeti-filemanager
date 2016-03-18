@@ -18,7 +18,7 @@ Windowtype *newwindow( int h, int w, int y, int x )
 	{
 		Windowtype *win;
 		
-		jetilog( 2, "creating new window...\n" );
+		systemlog( 2, "creating new window...\n" );
 
 		win = malloc(sizeof(Windowtype));
 
@@ -39,18 +39,18 @@ Windowtype *newwindow( int h, int w, int y, int x )
 			win->mlevel = 0;	
 			win->marker[win->mlevel] = -1;
 			win->slide[win->mlevel] = 0;
-			win->hiden = 0;
+			win->hidden = 0;
 			win->noexe = 0;
 
-		jetilog( 2, "window created\n");
+		systemlog( 2, "window created\n");
 		return win;
 	}
 
 Windowtype *redefinewindow( Windowtype *win, int h, int w, int y, int x )
 	{
-		jetilog( 3, "redefining window..\n" );
+		systemlog( 3, "redefining window..\n" );
 
-		win->hiden = 1;
+		win->hidden = 1;
 		clearwindow( win );
 		delwin( win->win );
 		clearEnvironment_tabs( win->tab );
@@ -59,11 +59,11 @@ Windowtype *redefinewindow( Windowtype *win, int h, int w, int y, int x )
 		win->w = w;
 		win->x = x;
 		win->y = y;
-		win->hiden = 0;
+		win->hidden = 0;
     win = init_win_colors( win );
 		win->tab = init_wintabs_environment( win->tab, win->w );
 
-		jetilog( 3, "window redefined\n" );
+		systemlog( 3, "window redefined\n" );
 		return win;
 	}
 
@@ -74,7 +74,7 @@ int loadnewdir( Windowtype *win, char wd[] )
 
 		if( !access(wd, R_OK) )
 			{
-				jetilog( 3, "loading new dir..\n" );
+				systemlog( 3, "loading new dir..\n" );
 
 				closedir( win->dir );
 
@@ -84,18 +84,18 @@ int loadnewdir( Windowtype *win, char wd[] )
         				i++;
       				}
       			win->wd[i] = '\0';
-					jetilog( 5, "enterd new pathname successfuly.\n" );
+					systemlog( 5, "enterd new pathname successfuly.\n" );
 
 				win->dir = opendir( wd );
-					jetilog( 5, "dir was able to open successfuly.\n" );
+					systemlog( 5, "dir was able to open successfuly.\n" );
 				win->filelist = getEntrys( win->dir, wd, win->filelist, win->showhidden );
 
-				jetilog( 3, "new dir loaded\n" );
+				systemlog( 3, "new dir loaded\n" );
 			}
 		else
 			{
 				success = 0;
-				jetilog( 1, "ERROR: no read access\n" );
+				systemlog( 1, "ERROR: no read access\n" );
 			}
 		return success;
 	}
@@ -121,6 +121,8 @@ int filesize_length( int fsize )
 		return size+1;
 	}
 
+static int colors_not_started = 1;
+
 void printwindow( Windowtype *win )
 	{
 		int x = 0,
@@ -129,25 +131,31 @@ void printwindow( Windowtype *win )
 				listsize,
 				endofname = 0;
 
-		jetilog( 2, "trying to prit window...\n" );
+		systemlog( 2, "trying to prit window...\n" );
 
-		start_color();
-		assume_default_colors( -1, -1 );
-		init_pair(1, win->color[0], -1 );
-		init_pair(2, win->color[1], -1 ); /*executebles*/
- 		init_pair(3, win->color[2], -1 ); /*katalogs*/
-		init_pair(4, win->color[3], -1 ); /*links*/
-		init_pair(5, win->color[4], -1 ); /*fifo*/
-    	init_pair(6, win->color[5], -1 ); /*char*/
-    	init_pair(7, win->color[6], -1 ); /*block*/
-    	init_pair(8, win->color[7], -1 ); /*error*/
-		init_pair(9, win->color[8], -1 ); /*selected*/
+		//only start thees onse, else there will be a paint leakage
+		if( colors_not_started )
+			{
+				start_color();
+				assume_default_colors( -1, -1 );
+				colors_not_started = 0;
+			}
 
-		if( !win->hiden )
+		init_pair(1, win->color[0], win->color[9] );
+		init_pair(2, win->color[1], win->color[9] ); /*executebles*/
+ 		init_pair(3, win->color[2], win->color[9] ); /*katalogs*/
+		init_pair(4, win->color[3], win->color[9] ); /*links*/
+		init_pair(5, win->color[4], win->color[9] ); /*fifo*/
+    	init_pair(6, win->color[5], win->color[9] ); /*char*/
+    	init_pair(7, win->color[6], win->color[9] ); /*block*/
+    	init_pair(8, win->color[7], win->color[9] ); /*error*/
+		init_pair(9, win->color[8], win->color[9] ); /*selected*/
+
+		if( !win->hidden )
 			{
 
 				/*get number of printeble objects*/
-				jetilog( 4,"get number of printeble objects\n" );
+				systemlog( 4,"get number of printeble objects\n" );
 				if( win->h-1 > (getlast( win->filelist))->number + 1 )
 					{
 						listsize = (getlast( win->filelist ))->number + 1;
@@ -158,7 +166,7 @@ void printwindow( Windowtype *win )
 					}
 
 				/* how far down in the filelist are we?*/
-				jetilog( 4,"how far down in the filelist are we?\n" );
+				systemlog( 4,"how far down in the filelist are we?\n" );
 				if( ((getlast(win->filelist))->number - win->slide[win->mlevel] < win->h -2) && win->slide[win->mlevel] != 0 )
 					{
 						if( (getlast(win->filelist))->number +2 - win->h < 0 )
@@ -168,7 +176,7 @@ void printwindow( Windowtype *win )
 					}
 
 				/* window decorations */
-				jetilog( 4,"window decorations\n" );
+				systemlog( 4,"window decorations\n" );
 				wattron( win->win, COLOR_PAIR(1) );
 				wattroff( win->win, A_REVERSE );
 				clear();
@@ -179,22 +187,22 @@ void printwindow( Windowtype *win )
 					}
 
 				//rewind shourtcuts
-				jetilog( 4,"rewind shourtcuts\n" );
+				systemlog( 4,"rewind shourtcuts\n" );
 				while( win->shortcuts->prev != NULL )
 					win->shortcuts = win->shortcuts->prev;
 				//Decorate with shortcuts
-				jetilog( 4,"Decorate with shortcuts\n" );
+				systemlog( 4,"Decorate with shortcuts\n" );
 				for( y = 1; ( y < win->h-1) && ( win->shortcuts->dir[0] != '_' ); y++ )
 					{
 						if( win->shortcuts->next != NULL )
 							{
-								jetilog( 5,"printing shourtcuts," );
+								systemlog( 5,"printing shourtcuts," );
 								mvwprintw( win->win, y, 0, "%c", win->shortcuts->label );
 								win->shortcuts = win->shortcuts->next;
 							}
 						else if( win->shortcuts->next == NULL )
 							{
-								jetilog( 5,"printing last shourtcut.\n" );
+								systemlog( 5,"printing last shourtcut.\n" );
 								mvwprintw( win->win, y, 0, "%c", win->shortcuts->label );
 								break;
 							}
@@ -202,39 +210,48 @@ void printwindow( Windowtype *win )
 			//--= window substans  =----------------------------------------------------->
     		for( y = 1; y < win->h-1; y++ )
 					{
-						jetilog( 6,"--= inside window substans =--\n" );
+						systemlog( 6,"--= inside window substans =--\n" );
 
-						win->filelist = gotoEntry( win->filelist, y+win->slide[win->mlevel] );
+						//test that we are not out of file_range before calling these funktions
+						if( y+win->slide[win->mlevel] <= getlast( win->filelist )->number )
+							{
+								//makes shure selections gets right file
+								win->filelist = gotoEntry( win->filelist, y+win->slide[win->mlevel] );
 
-						//collorate row tru filetype
-						jetilog( 6,"collorate row tru filetype\n" );
-						if( win->filelist->selected )
-							filecolor = 9;
-						else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "ERROR") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "linkER"))
-            				filecolor = 8;
-            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "block") )
-              				filecolor = 7;
-            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "char") )
-              				filecolor = 6;
-            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "fifo") )
-              				filecolor = 5;
-            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "link") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "<DIR L>") )
-              				filecolor = 4;
-            			else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "<DIR>") )
-              				filecolor = 3;
-            			else if( S_IEXEC & gotoEntry(win->filelist, y+win->slide[win->mlevel])->status )
-              				filecolor = 2;
-            			else
-              				filecolor = 1;
+								//collorate row tru filetype
+								systemlog( 6,"collorate row tru filetype\n" );
+								if( win->filelist->selected )
+									filecolor = 9;
+								else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "ERROR") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "linkER"))
+            						filecolor = 8;
+            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "block") )
+              						filecolor = 7;
+            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "char") )
+              						filecolor = 6;
+            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "fifo") )
+              						filecolor = 5;
+            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "link") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "<DIR L>") )
+              						filecolor = 4;
+            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "<DIR>") )
+              						filecolor = 3;
+            					else if( S_IEXEC & win->filelist->status )
+              						filecolor = 2;
+            					else
+              						filecolor = 1;
+							}
 
-						//make row where marker is, white.
-						jetilog( 6,"make row where marker is, white\n" );
-						if( y+win->slide[win->mlevel] == win->marker[win->mlevel] && win->marker[win->mlevel] != -1 )
+						//make line where marker is, white.
+						systemlog( 6,"make line where marker is, white\n" );
+						if( y+win->slide[win->mlevel] == win->marker[win->mlevel] )
             				{
                					filecolor = 1;
-                				wattron( win->win, A_REVERSE );
+                				wattron( win->win, A_REVERSE  );
               				}
-            			else wattroff( win->win, A_REVERSE );
+            			else
+							{ 
+								wattroff( win->win, A_REVERSE );
+							}
+							
 
 						//rewind tabs
 						while( win->tab->prev != NULL )
@@ -243,16 +260,16 @@ void printwindow( Windowtype *win )
     					for( x = 1; x <= (win->w -2) ; x++ )
 							{
 								//as long as there are files to print
-								jetilog( 7,"1" );
+								systemlog( 7,"1" );
 								if( y < listsize )
            							{
 										//keep printibg while not in next tabfeeld, then shange to next tabfeeld
-										jetilog( 7,"2" );
+										systemlog( 7,"2" );
 										if( win->tab->next != NULL && x >= win->tab->next->start )
                       						{ win->tab = win->tab->next; endofname = 0; }
 
 										//keep printing while there is something to print, ( check is inside switch/case )
-										jetilog( 7,"3" );
+										systemlog( 7,"3" );
 										if( win->tab->opt == presentation && printfilename( win->filelist, x - win->tab->start, y + win->slide[win->mlevel] ) == '\0')
                								endofname = 1;
 
@@ -260,7 +277,7 @@ void printwindow( Windowtype *win )
 										switch( win->tab->opt )
       										{
           										case selected:
-																	jetilog( 7,"S" );
+																	systemlog( 7,"S" );
             														if( x - win->tab->start >= 0 && win->filelist->selected && x - win->tab->start < win->tab->length )
 																		{
 																			wattron( win->win, COLOR_PAIR( filecolor ) );
@@ -270,23 +287,26 @@ void printwindow( Windowtype *win )
 																		{
 																			wattron(win->win, COLOR_PAIR(1) );
 																			mvwprintw( win->win, y, x, " " );
+
 																		}
             											break;
 
           										case filename:
-																	jetilog( 7,"F" );
+																	systemlog( 7,"F" );
 																	if( x - win->tab->start >= 0 && x - win->tab->start < strlen( win->filelist->file->d_name ) )
-																		{
+																		{	
+																			wattron( win->win, COLOR_PAIR( filecolor ) );
 																			mvwprintw( win->win, y, x, "%c", win->filelist->file->d_name[x - win->tab->start] );
 																		}
 																	else
 																		{
+																			wattron(win->win, COLOR_PAIR(1) );
             																mvwprintw( win->win, y, x, " " );
 																		}
             											break;
 
           										case presentation:
-																	jetilog( 7,"P" );
+																	systemlog( 7,"P" );
             														if( x - win->tab->start >= 0 && !endofname )
 																		{
               																wattron( win->win, COLOR_PAIR( filecolor ) );
@@ -300,7 +320,7 @@ void printwindow( Windowtype *win )
             											break;
 
           										case filetype:
-																	jetilog( 7,"T" );
+																	systemlog( 7,"T" );
             														if( x - win->tab->start >= 0 && x - win->tab->start < printfiletypelenght( win->filelist, y + win->slide[win->mlevel] ) )
 																		{
                               												wattron( win->win, COLOR_PAIR( filecolor ) );
@@ -314,7 +334,7 @@ void printwindow( Windowtype *win )
             											break;
 
 												case mode: 
-																	jetilog( 7,"M" );
+																	systemlog( 7,"M" );
 																	if( x - win->tab->start >= 0 && x - win->tab->start < win->tab->length )
 																		{
 																			wattron( win->win, COLOR_PAIR(1) );
@@ -350,7 +370,7 @@ void printwindow( Windowtype *win )
 																	break;
 
           										case size:
-																	jetilog( 7,"Z" );
+																	systemlog( 7,"Z" );
 																	if( x - win->tab->start == 0 && x - win->tab->start < win->tab->length )
 																		{
 																			wattron( win->win, COLOR_PAIR(1) );
@@ -377,23 +397,25 @@ void printwindow( Windowtype *win )
             														break;
 
           										default:
+																	wattron( win->win, COLOR_PAIR(1) ); 
             														mvwprintw( win->win, y, x, " " );
             														break;
       									}
 									}
 								else
 									{
+										wattron( win->win, COLOR_PAIR(1) );
 										mvwprintw( win->win, y, x, " " );
 									}
 							}
 
-									endofname = 0;
-									win->tab = gettab( win->tab, 1 );
+								endofname = 0;
+								win->tab = gettab( win->tab, 1 );
 						}
 			}
 
 		wrefresh( win->win );
-		jetilog( 2, "window printed\n" );
+		systemlog( 2, "window printed\n" );
 	}
 
 void clearwindow( Windowtype *win )
@@ -401,12 +423,12 @@ void clearwindow( Windowtype *win )
 		int x, 
 			y;
 
-		jetilog( 2, "clearing window...\n" );
+		systemlog( 2, "clearing window...\n" );
 
 		for( y = 0; y < win->h; y++ ){
 			for( x = 0; x < win->w; x++ ){
 
-				if( win->hiden )
+				if( win->hidden )
 					mvwprintw( win->win, y, x, " " );
 
 				else if( y > 0 && y < win->h-1 && x > 0 && x < win->w-1)
@@ -415,28 +437,28 @@ void clearwindow( Windowtype *win )
 			}
 		}
 
-		jetilog( 2, "window cleard\n" );
+		systemlog( 2, "window cleard\n" );
 
 	}
 
 int toglehidewin( Windowtype *win )
 	{
-		jetilog( 3, "hiding window..\n" );
-		if( win->hiden )
-			win->hiden = 0;
+		systemlog( 3, "hiding window..\n" );
+		if( win->hidden )
+			win->hidden = 0;
 
 		else
-			win->hiden = 1;
+			win->hidden = 1;
 
-		jetilog( 3, "window hidden\n" );
-		return win->hiden;
+		systemlog( 3, "window hidden\n" );
+		return win->hidden;
 	}
 
 int insidewindow( Windowtype *win, int y, int x )
 	{
 		int inside = 0;
 		
-		jetilog( 3, "testing if inside window.\n" );
+		systemlog( 3, "testing if inside window.\n" );
 
 			if( (x > win->x) && (x < win->x + win->w)
 			 && (y > win->y) && (y < win->y + win->h) )
@@ -451,7 +473,7 @@ int onshortcutrow( Windowtype *win, int y, int x )
 	{
 		int spoton = 1;
 
-		jetilog( 3, "testing if on shourtcut.\n" );
+		systemlog( 3, "testing if on shourtcut.\n" );
 
 		win->shortcuts = getshortcut( win->shortcuts, 1 );	
 
@@ -475,7 +497,7 @@ int onshortcutrow( Windowtype *win, int y, int x )
 
 shortcutType *getshortcut( shortcutType *shorty, int pos )
 	{
-		jetilog( 3, "seeking shourtcut.\n" );
+		systemlog( 3, "seeking shourtcut.\n" );
 
 		while( shorty->prev != NULL )
 			{
@@ -492,9 +514,9 @@ shortcutType *getshortcut( shortcutType *shorty, int pos )
 
 void destroywindow( Windowtype *win ) 
 	{
-		jetilog( 3, "destroying window..\n" );
+		systemlog( 3, "destroying window..\n" );
 
-		win->hiden = 1;
+		win->hidden = 1;
 		clearwindow( win );
 
 		clearEnvironment_tabs( win->tab );
@@ -505,5 +527,5 @@ void destroywindow( Windowtype *win )
 		delwin( win->win );
 			free( win );
 
-		jetilog( 2, "window destroyd\n" );
+		systemlog( 2, "window destroyd\n" );
 	}

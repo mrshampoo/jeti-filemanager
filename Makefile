@@ -1,6 +1,7 @@
 TARGET = jeti
 
-DESTDIR = /usr
+DESTDIR ?= /
+PREFIX ?= /usr
 
 CONFIG = jeti.rc
 CONFDIR = share/jeti
@@ -11,28 +12,29 @@ BINDIR = bin
 INCLUDES = $(addprefix $(INCDIR)/,autocomplete.h command-window.h directorys.h environment.h handleflags.h navigation.h projecttypes.h soundeffects.h systemlog.h window.h)
 OBJECTS := $(addprefix $(OBJDIR)/,main.o handleflags.o systemlog.o soundeffects.o navigation.o environment.o autocomplete.o window.o command-window.o directorys.o)
 
-CC = gcc
-CFLAGS = -g -Wall
-LIBS = -lncurses
+CC ?= gcc
+CFLAGS ?= -g -Wall
+LIBS ?= -lncurses
+
+all:    $(OBJDIR) $(BINDIR)/$(TARGET)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
 $(OBJDIR)/%.o: %.c $(INCLUDES)
-	mkdir -p $(OBJDIR)
 	$(CC) $(CFLAGS) $(LIBS) -c $< -I$(INCDIR) -o $@
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	mkdir -p $(BINDIR)
 	$(CC) $(CFLAGS) $(LIBS) $^ -o $@
 
-install: $(BINDIR)/$(TARGET) $(CONFDIR)/$(CONFIG)
-	cp $(BINDIR)/$(TARGET) $(DESTDIR)/bin/
-	mkdir -p $(DESTDIR)/$(CONFDIR)
-	cp $(CONFDIR)/$(CONFIG) $(DESTDIR)/$(CONFDIR)/
-	cp $(CONFDIR)/README $(DESTDIR)/$(CONFDIR)/
-	cp $(CONFDIR)/CHANGELOG $(DESTDIR)/$(CONFDIR)/
+install: all $(CONFDIR)/$(CONFIG)
+	install -D $(BINDIR)/$(TARGET) -t $(DESTDIR)$(PREFIX)/bin/
+	install -D $(CONFDIR)/* -t $(DESTDIR)$(PREFIX)/$(CONFDIR)/
 
-uninstall: $(DESTDIR)/bin/$(TARGET) $(DESTDIR)/$(CONFDIR)
-	rm $(DESTDIR)/bin/$(TARGET)
-	rm -r $(DESTDIR)/$(CONFDIR)
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(TARGET)
+	rm -rf $(DESTDIR)$(PREFIX)/$(CONFDIR)
 
 .PHONY : clean
 clean:

@@ -6,9 +6,10 @@ this program is distributed under the terms of the GNU General Public License*/
 #include <string.h>
 #include "handleflags.h"
 #include "environment.h"
+#include "projecttypes.h"
 
 static int logprioritys_shown = 0;
-static int mute = 0;
+static int MUTE = 0;
 
 void showhelpmenu()
 	{
@@ -33,7 +34,7 @@ void showhelpmenu()
 	}
 void print_version()
 	{
-		printf( "1.1.1\n" );
+		printf( "1.1.2\n" );
 		exit(0);
 	}
 
@@ -56,7 +57,7 @@ int handle_flags( int argc, char *argv[] )
                     }
                 else if( !strncmp( argv[o], "-m", 2 ) || !strncmp( argv[o], "--mute", 6 ) )
                     {
-                        mute = 1;
+                        MUTE = 1;
                     }
 				else if( !strncmp( argv[o], "-c", 2 ) || !strncmp( argv[o], "--config", 8 ) )
                     {
@@ -79,7 +80,7 @@ int handle_flags( int argc, char *argv[] )
 
 int is_not_muted()
 	{
-		return !mute;
+		return !MUTE;
 	}
 
 int show_logprioritys()
@@ -88,10 +89,10 @@ int show_logprioritys()
 	}
 int toggle_mute()
 	{
-		if( mute )
-			mute = 0;
+		if( MUTE )
+			MUTE = 0;
 		else
-			mute = 1;
+			MUTE = 1;
 
-		return mute;
+		return MUTE;
 	}

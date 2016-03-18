@@ -18,7 +18,7 @@ this program is distributed under the terms of the GNU General Public License*/
 //			7: even more frekvent stuff, ex on every character or pixel
 static int _first_time_logging_ = 1;
 
-void jetilog( int priority, char logmessage[] )
+void systemlog( int priority, char logmessage[] )
 	{
 		int t;
 		char completmessage[250];

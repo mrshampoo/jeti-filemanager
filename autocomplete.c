@@ -7,12 +7,12 @@ this program is distributed under the terms of the GNU General Public License*/
 
 void addslash( char st[], char cmd[] )
 	{
-		int i = 0;
-		char c[2];
+		int i = 0; //current char
+		char c[2]; //char to string midleman
 		char tmpcmd[COMMANDLENGTH];
 
 		c[1] = '\0';
-    tmpcmd[0] = '\0';
+		tmpcmd[0] = '\0';
 
 			for( i = 0; i < strlen(cmd); i++ )
 				{
@@ -20,15 +20,15 @@ void addslash( char st[], char cmd[] )
 					||  cmd[i] == '\n'
 					||  cmd[i] == '\t'
 					||  cmd[i] == '\0'
-				 	||  cmd[i] == '('
-         			||  cmd[i] == ')'
+					||  cmd[i] == '('
+					||  cmd[i] == ')'
 					||  cmd[i] == '['
 					||  cmd[i] == ']'
 					||  cmd[i] == '<'
 					||  cmd[i] == '>' )
-          				{
-            				strcat( tmpcmd, "\\" );
-            			}
+						{
+							strcat( tmpcmd, "\\" );
+						}
 
 					c[0] = cmd[i];
 					strcat( tmpcmd, c );
@@ -43,25 +43,25 @@ void addslash( char st[], char cmd[] )
 int find_and_add_dir( char st[], char cmd[], char dir[] )
 	{
 		int at = 0;
-		int a = 0;
+		int i = 0; //current char
+		char c[2]; //char to string midleman
 		char tmpcmd[COMMANDLENGTH];
-		char c[2];
 
 		c[1] = '\0';
 		tmpcmd[0] = '\0';
 
-		for( a = 0; a < strlen( cmd ); a++ )
+		for( i = 0; i < strlen( cmd ); i++ )
 			{
-				if( cmd[a] == '$' && cmd[a+1] == 'd' && cmd[a+2] == 'i'&& cmd[a+3] == 'r' )
+				if( cmd[i] == '$' && cmd[i+1] == 'd' )
 					{
-						at = a;
+						at = i;
 						strcat( tmpcmd, dir );
-						a += 4;
+						i += 4;
 						
 					}
 				else
 					{
-						c[0] = cmd[a];
+						c[0] = cmd[i];
 						strcat( tmpcmd, c );
 					}
 
@@ -73,27 +73,30 @@ int find_and_add_dir( char st[], char cmd[], char dir[] )
 
 int find_and_add_fp( char st[], char cmd[], char fp[] )
 	{
-		int a = 0;
+		int at = 0;
+		int i = 0; //current char
 
-    char tmpcmd[COMMANDLENGTH];
-    char c[2];
-      c[0] = '/'; 
-			c[1] = '\0';
-      tmpcmd[0] = '\0';
+		char c[2]; //char to string midleman
+		char tmpcmd[COMMANDLENGTH];
 
-	for( a = 0; a != strlen( cmd ); a++ )
-		{
-			if( cmd[a] == '$' && cmd[a+1] == 'f' )
-				{ 
-					strcat( tmpcmd, fp );
-					a += 2;
-				}
+		c[0] = '/'; 
+		c[1] = '\0';
+		tmpcmd[0] = '\0';
 
-          c[0] = cmd[a];
-          strcat( tmpcmd, c );
-        }
+		for( i = 0; i != strlen( cmd ); i++ )
+			{
+				if( cmd[i] == '$' && cmd[i+1] == 'f' )
+					{ 
+						at = i;
+						strcat( tmpcmd, fp );
+						i += 2;
+					}
 
-        strcpy( st, tmpcmd );
+				c[0] = cmd[i];
+				strcat( tmpcmd, c );
+			}
+
+		strcpy( st, tmpcmd );
 			
-		return a/2;
+		return at;
 	}

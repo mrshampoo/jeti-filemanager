@@ -9,6 +9,8 @@ this program is distributed under the terms of the GNU General Public License*/
 
 	int get_configname();
 	int set_configname( char path[] );
+	int set_terminalname( char terminal[] );
+	int get_terminalname();
 	Windowtype *init_win_colors( Windowtype *win );
 	tabtype *gettab( tabtype *tab, int n );
 	tabtype *sorttabs( tabtype *tab, int wide );
