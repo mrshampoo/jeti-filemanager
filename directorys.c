@@ -108,7 +108,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 					else if( S_ISREG(buf.st_mode) )
 						{/*regular file*/
 							dotsize = 1;
-							strcpy( obj->filetype, "         ");
+							strcpy( obj->filetype, "         " );
 							for( x = strlen(obj->file->d_name); x >= 0; x-- )
 								{
 									if( obj->file->d_name[x] == '.' && x != 0 && dotsize != 0 )
@@ -128,7 +128,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 									else
 										{/*filetype to big or none existing*/
 											strcpy( obj->presentation, obj->file->d_name );
-											strcpy( obj->filetype, " ");
+											strcpy( obj->filetype, " " );
 											break;
 										}
 								}
@@ -471,9 +471,15 @@ int isoffiletype( dirEntry *filelist, int filenr, char type[] )
 
 		systemlog( 4, "isoffiletype\n" );
 
+		//get right entry
 		if( filenr != filelist->number )
 			{ filelist = gotoEntry( filelist, filenr ); }
 
+		//check that not null ( makes for comparison imposible )
+		if( ( type[0] == '\0' ) || ( filelist->filetype[0] == '\0' )  )
+			yes = 0;
+
+		//compare
 		for( x = strlen(type); x >= 0; x-- )
 			{
 				if( type[x] != filelist->filetype[x] )

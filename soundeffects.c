@@ -27,7 +27,7 @@ void playsound( soundeffectType *sounds, int action )
 	{
 		char cmd[COMMANDLENGTH];
 
-		if( sounds != NULL && is_not_muted() )
+		if( sounds != NULL && sounds->action != -1 && is_not_muted() )
 			{
 				if( sounds->action != action )
 					sounds = getsoundaction( sounds, action );

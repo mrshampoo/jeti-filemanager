@@ -41,6 +41,9 @@ void systemlog( int priority, char logmessage[] )
 						strcat( completmessage,"\t" );
 
 					strcat( completmessage, logmessage );
+				
+					if( logmessage[strlen(logmessage)-1] != '\n' && priority < 6 )
+						strcat( completmessage, "\n" );
 
 					fprintf( file, completmessage );
 				fclose( file );

@@ -622,9 +622,13 @@ filetypeAction *init_fileAction()
 
 		systemlog( 2, "trying to initiate fileActions...\n" );
 
+		//create action for empty filetype
 		action = malloc( sizeof(filetypeAction) );
+			strcpy( action->filetype, "\0" );
 			strcpy( action->Action, " " );
-			action->next = malloc( sizeof(filetypeAction) );;
+
+		//create second action	
+		action->next = malloc( sizeof(filetypeAction) );;
 			action->next->next = NULL;
 			action->next->prev = action;
 			action->prev = NULL;
@@ -700,7 +704,7 @@ filetypeAction *init_fileAction()
 			}
 		else
 			{
-				//no config
+				systemlog( 1, "WARNING: file actions: config not read");
 			}
 
 		systemlog( 2, "fileAction initiated\n");
@@ -788,12 +792,16 @@ shortcutType *init_shortcuts()
 		else
 			{
 				//no config
+				systemlog( 1, "WARNING: shortcuts: config not read");
 			}
 
 		//remove unused mallocation
-		shortCuts = shortCuts->prev;
-		free( shortCuts->next );
-		shortCuts->next = NULL; 
+		if( shortCuts->prev != NULL )
+			{
+				shortCuts = shortCuts->prev;
+				free( shortCuts->next );
+				shortCuts->next = NULL; 
+			}
 
 		systemlog( 2, "shortcuts initiated\n");
 		return shortCuts;
@@ -898,9 +906,12 @@ soundeffectType *init_soundeffects()
 			}
 
 		//remove unused mallocation
-		sounds = sounds->prev;
-		free( sounds->next );
-		sounds->next = NULL;
+		if( sounds->prev != NULL )
+			{
+		 		sounds = sounds->prev;
+				free( sounds->next );
+				sounds->next = NULL;
+			}
 
 		systemlog( 2, "soundeffects initiated\n");
 		return sounds;
@@ -921,7 +932,7 @@ void clearEnvironment_tabs( tabtype *tabs )
 
 		free( tabs );
 
-		systemlog( 2, "tabs cleard\n");
+		systemlog( 3, "tabs cleard\n");
 	}
 
 void clearEnvironment_actions( filetypeAction *actions )
@@ -940,7 +951,7 @@ void clearEnvironment_actions( filetypeAction *actions )
 
 		free( actions );
 
-		systemlog( 2, "actions cleard\n");
+		systemlog( 3, "actions cleard\n");
 	}
 
 void clearEnvironment_shortcuts( shortcutType *shortCuts )
@@ -959,7 +970,7 @@ void clearEnvironment_shortcuts( shortcutType *shortCuts )
 
 		free( shortCuts );
 
-		systemlog( 2, "shortcuts cleard\n");
+		systemlog( 3, "shortcuts cleard\n");
 	}
 
 void clearEnvironmett_sounds( soundeffectType *sounds )
@@ -978,6 +989,6 @@ void clearEnvironmett_sounds( soundeffectType *sounds )
 		
 		free( sounds );
 
-		systemlog( 2, "sounds cleard\n");
+		systemlog( 3, "sounds cleard\n");
 	}
 

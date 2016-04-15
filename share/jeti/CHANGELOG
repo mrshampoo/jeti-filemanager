@@ -1,19 +1,7 @@
-changes done from verison 1.1.1 to 1.1.2
+changes done from verison 1.1.2 to 1.1.3
 	changes that are a bit buggy are tabed in.
 
-	* added color output when using "window.tab.left: filename"
-	* removed a space at line 108 in directorys.c to prevent buffer overflow (thanks pullmoll@github for pointing this out)
-	* some changes to the makefile (thanks pullmoll@github :) )
-	* changed "hiden" to "hidden" in windowtype and cmdwindowtype
-	* added a lots of new comments.
-	* corrected a old forgoten debugg test in printcmdwin: cw->wd to cw->ddir
-	* in environment.c: changed c,d,b,r,l integers to l,i,v,rn,ln to make it not as difficult to read
-	* freed unused mallocations in environment.c (soundeffects, shortcutts)
- 	* changed name of jetilog to systemlog
-	* buggfix printwindow can no longer call gotoEntry with filenumbers out of range
-	* added posibility to change background color
-	* buggfix: no more color leakage
-	* buggfix: command-window does not segmentarion fault any longer on $f trows
-	* $dir is now $d
-	* added posibilety to use a difrent terminal for executions
+	* fixed a segmentation fault when no config
+	* fixed newlining in systemlog
+		* fixed bug, files with no filetype dosent borrow actions from other filetypes anymore. ( wishing for a xor solution in isoffiletype insted of or that there is now ) 
 
