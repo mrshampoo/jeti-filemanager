@@ -1,7 +1,8 @@
-changes done from verison 1.1.2 to 1.1.3
+changes done from verison 1.1.3 to 1.2.0
 	changes that are a bit buggy are tabed in.
 
-	* fixed a segmentation fault when no config
-	* fixed newlining in systemlog
-		* fixed bug, files with no filetype dosent borrow actions from other filetypes anymore. ( wishing for a xor solution in isoffiletype insted of or that there is now ) 
+	* dialog window added!
+	* nonefiletype added!
+	* logfile filepath added!
+	* small changes sytemlog/diagnosticks (diagnostiks with priority 9x is tails with informaton)
 

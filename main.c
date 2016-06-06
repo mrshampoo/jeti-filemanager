@@ -45,11 +45,13 @@ int main( int argc, char *argv[] )
 
 		void catchresize( int dummy )
 			{
+				systemlog( 2, "catchresize");
 				endwin();
 				refresh();
 				clear();
 				win_one = redefinewindow( win_one, LINES, COLS/2, 0, 0 );
 				win_two = redefinewindow( win_two, LINES, COLS/2, 0, COLS/2 );
+				redefine_navigation();
 				printwindow( win_one );
 				printwindow( win_two );
 				keypad( activwin->win, TRUE );
@@ -57,26 +59,33 @@ int main( int argc, char *argv[] )
 		
 		void catchexit( int dummy )
 			{
-				systemlog( 3, "catched exit..\n" );
+				systemlog( 2, "--= catched exit =------------->\n" );
 				repaint = -1;
 				EXIT = 1;
 			}
 
+		FILEPATH_LOG[0] = '\0';
+
+		systemlog( 4, "get parameters" );
 		handle_flags( argc, argv );
+		get_logpath();
 		get_terminalname();
 
 		/*Set consoletitle*/
+		systemlog( 4, "set consosoltitle" );
 		printf("%c]0;%s%c", '\033', "Jeti!", '\007');
 
 		initscr();
 
 			/*setup curses*/
+			systemlog( 4, "setup curses");
 			cbreak();
 			noecho();
 			nodelay(stdscr, TRUE);
 			curs_set(0);
 
 			/*signal handeling*/
+			systemlog( 4, "signal handeling" );
 			signal( SIGINT, catchexit ); //Ctrl-C
 			signal( SIGQUIT, catchexit ); //ex. errors
 			signal( SIGTERM, catchexit ); //got a polite exit request
@@ -84,17 +93,21 @@ int main( int argc, char *argv[] )
 			signal( SIGWINCH, catchresize ); //terminal rezised
 
 			/*initiate stuff*/
+			systemlog( 4, "initiate stuff" );
 			actions = init_fileAction();
 			sounds = init_soundeffects();
+			init_navigation();
+			get_dialogwinreactions();
 
 			/*create windows*/
+			systemlog( 4, "create windows");
 			win_one = newwindow( LINES, COLS/2, 0, 0 );
 			win_two = newwindow( LINES, COLS/2, 0, COLS/2 );
 			activwin = win_one;
 			passivwin = win_two;
 			cmdwin = new_cmdwindow( 3, COLS-4, LINES/2, 2, activwin->wd );
 			nodelay( win_one->win, TRUE );
-            nodelay( win_two->win, TRUE );
+            		nodelay( win_two->win, TRUE );
 
 				keypad( activwin->win, TRUE );
 				mousemask( ALL_MOUSE_EVENTS, NULL );
@@ -206,6 +219,7 @@ int main( int argc, char *argv[] )
 																	{
 																		activwin->shortcuts = getshortcut( activwin->shortcuts, press_action_shortcuts );
 																		repaint = handleshortcut( activwin, passivwin, sounds );
+																		systemlog( 5, "handleshourtcut success");
 																	}
 
 																press_action_one = 0;
@@ -260,18 +274,18 @@ int main( int argc, char *argv[] )
 													}
 												break;
 
-								case KEY_UP:	repaint = stepupp( activwin, sounds );
+								case KEY_UP:		repaint = stepupp( activwin, sounds );
 												break;
 
-								case KEY_DOWN:	repaint = stepdown( activwin, sounds );
+								case KEY_DOWN:		repaint = stepdown( activwin, sounds );
 												break;
 
-								case KEY_RIGHT: activwin = win_two;
+								case KEY_RIGHT: 	activwin = win_two;
 												passivwin = win_one;
 												keypad( activwin->win, TRUE ); 
 												break;
 
-								case KEY_LEFT: 	activwin = win_one;
+								case KEY_LEFT:		activwin = win_one;
 												passivwin = win_two;
 												keypad( activwin->win, TRUE );
 												break;
@@ -299,10 +313,12 @@ int main( int argc, char *argv[] )
 								case 'c': 		repaint = copyfiles( activwin, passivwin, sounds );
 												break;
 
-								case 'm':     	repaint = movefiles( activwin, passivwin, sounds );
+								case 'm':		repaint = movefiles( activwin, passivwin, sounds );
 												break;
 
-								case KEY_DC:  	repaint = removefiles( activwin, sounds );
+								case KEY_DC:		repaint = removefiles( activwin, sounds );
+												if( strlen( activwin->wd ) == strlen( passivwin->wd )&& !strncmp( activwin->wd, passivwin->wd, strlen( passivwin->wd ) ) )
+													loadnewdir( passivwin, passivwin->wd );
 												break;
 																
 								default: 
@@ -313,19 +329,20 @@ int main( int argc, char *argv[] )
 							{
 								systemlog( 3, "repaint\n" );
 								clearwindow( activwin );
-                				printwindow( activwin );
+								printwindow( activwin );
 								
 								clearwindow( passivwin );
-                				printwindow( passivwin );
+								printwindow( passivwin );
 
-                				repaint = 0;
+								repaint = 0;
 							}
 					}
 
+			destroy_navigation();
 			clearEnvironmett_sounds( sounds );
 			clearEnvironment_actions( actions );
 			clearEnvironment_shortcuts( win_one->shortcuts );
-            clearEnvironment_shortcuts( win_two->shortcuts );
+			clearEnvironment_shortcuts( win_two->shortcuts );
 			destroycmdwin( cmdwin );
 			destroywindow( win_one );
 			destroywindow( win_two );

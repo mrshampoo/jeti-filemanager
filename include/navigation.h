@@ -6,7 +6,10 @@ this program is distributed under the terms of the GNU General Public License*/
 
 #ifndef _NAVIGATION_
 	#define _NAVIGATION_
- 
+
+	void init_navigation();
+	void redefine_navigation();
+	void destroy_navigation(); 
 	int scrollupp( Windowtype *win, soundeffectType *sounds );
 	int scrolldown( Windowtype *win, soundeffectType *sounds );
 	int stepupp( Windowtype *win, soundeffectType *sounds );

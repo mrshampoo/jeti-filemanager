@@ -171,6 +171,199 @@ int get_terminalname()
 
 		return found;
 	}
+int set_logpath( char logpath[] )
+	{
+		int valid = 0;
+
+		if( !access( logpath, W_OK ) )
+			{
+				strcpy( FILEPATH_LOG, logpath );
+				if( logpath[strlen(logpath)] != '/' )
+					strcat( FILEPATH_LOG, "/" );
+
+				valid = 1;
+			}
+		else
+			{
+				systemlog( 1, "ERROR: cant wrie logfile in: " );
+				systemlog( 91, logpath );
+
+				valid = 0;
+			}
+
+		return valid;
+	}
+int get_logpath()
+	{
+		int valid = 0;
+		int l = 0; //line reading
+		int i = 0; //instruction reading
+		int v = 0;
+
+		char tmplogpath[256];
+		char buff[256];
+		FILE *fp;
+
+		tmplogpath[0] = '\0';
+
+		if( !access( CONFIGNAME, R_OK ) )
+			{
+				fp = fopen( CONFIGNAME, "rb");
+
+				while( (buff[l] = fgetc(fp)) != EOF )
+					{
+						if( buff[l] == '\n' )
+							{
+								//remove blankspace in the beginning
+								while( buff[0] == ' ' )
+									{ strcpy( buff, buff+1 ); }
+
+								if( !strncmp( buff, "logfile.path: ", 14 ) )
+									{i+=14;
+
+										//remove blankspace in the beginning
+										while( buff[i] == ' ' )
+											i++;
+
+										while( buff[i+v] != '\n' )
+											{
+												tmplogpath[v] = buff[i+v];
+												v++;
+											}
+										tmplogpath[v] = '\0';
+
+										if( tmplogpath[0] != '\0'  )
+											{
+												valid = set_logpath( tmplogpath );
+											}
+										else
+											{
+												systemlog( 1, "WARNING: get_logpath: coud not find logfile.path: <path> -> fallback set to $HOME" );
+											}
+									}
+
+								l = 0;
+								i = 0;
+								v = 0;
+							}
+						else
+							l++;
+					}
+
+				fclose( fp );
+			}
+		else
+			{
+				systemlog( 1, "WARNING: get_logpath: no config -> fallback logpath set to $HOME");
+			}
+
+		if( !valid )
+			{
+				systemlog(1, "nonvalid logpath");
+				v = 0; memset( buff, 0, sizeof(buff) );
+				fp = popen( "echo $HOME/", "r" );
+				while( ( buff[v] = fgetc( fp )) != EOF )
+					{ v++; } buff[v-1] = '\0';
+
+				set_logpath( buff );
+			}
+
+		return valid;
+	}
+
+int set_dialogwinreactions( int dw_reactions )
+	{
+		int valid = 0;
+
+		if( dw_reactions > 28 )
+			{
+				systemlog( 1, "ERROR: set_dialogwinreactions: to large ->nonvalid" );
+				valid = 0;
+			}
+		else if( dw_reactions < 0 )
+			{
+				systemlog( 1, "ERROR: set_dialogwinreactions: negativ value ->nonvalid" );
+				valid = 0;
+			}
+		else if( (dw_reactions & 4) && (dw_reactions & 8) )
+			{
+				systemlog( 1, "ERROR: set_dialogwinreactions: xx11xx are in conflict ->nonvalid" );
+				valid = 0;
+			}
+		else if( (dw_reactions & 16) && (dw_reactions & 32) )
+			{
+				systemlog( 1, "ERROR: set_dialogwinreactions: 11xxxx are in conflict ->nonvalid" );
+				valid = 0;
+			}
+		else
+			{
+				DW_REACTION = dw_reactions;
+				valid = 1;
+			}
+
+		return valid;
+	}
+
+int get_dialogwinreactions()
+	{
+		int set = 0;
+		int l = 0; //line reading
+		int i = 0; //instruction reading
+
+		int dw_reaction_temp = 0;
+
+		char buff[256];
+		FILE *fp;
+
+		if( !access( CONFIGNAME, R_OK ) )
+			{
+				fp = fopen( CONFIGNAME, "rb");
+
+				while( (buff[l] = fgetc(fp)) != EOF )
+					{
+						if( buff[l] == '\n' )
+							{
+								//remove blankspace in the beginning
+								while( buff[0] == ' ' )
+									{ strcpy( buff, buff+1 ); }
+
+								if( !strncmp( buff, "dialogwindow.reactions: ", 24 ) )
+									{i+=24;
+										dw_reaction_temp = (int) strtol( buff+i, NULL, 10 );
+
+										if( set_dialogwinreactions( dw_reaction_temp ) )
+											{
+												set = 1;
+												systemlog( 2, "dialogwindow.reactions found and set" );
+											}
+										else
+											{
+												set_dialogwinreactions( 0 );
+												systemlog( 1, "ERROR: non valid dialog reactions set, fallback 000000" );
+											}
+									}
+
+								l = 0;
+								i = 0;
+							}
+						else
+							l++;
+					}
+
+				if( !set )
+					{
+						set_dialogwinreactions( 0 );
+						systemlog( 1, "WARNING, no dialog-win reaction found, fallback 000000" );
+					}
+			}
+		else
+			{
+				set_dialogwinreactions( 0 );
+				systemlog( 1, "WARNING: get_dialogwinreactions: no config, fallback 000000" );
+			}
+
+			return set;
+	}
 
 Windowtype *init_win_colors( Windowtype *win )
 	{
@@ -253,7 +446,7 @@ Windowtype *init_win_colors( Windowtype *win )
 
 tabtype *gettab( tabtype *tab, int n )
 	{
-		systemlog( 3, "enterd gettab..\n" );
+		systemlog( 4, "enterd gettab..\n" );
 
 		while( tab->prev != NULL && tab->n != n )
 			tab = tab->prev;
@@ -515,6 +708,7 @@ tabtype *init_wintabs_environment( tabtype *tab, int wide )
                 tab->start = 1;
                 tab->length = 1;
                 tab->opt = selected;
+				tab->prev = NULL;
 
 				tab->next = malloc( sizeof(tabtype) );
 				tab->next->n = 1;
@@ -522,6 +716,7 @@ tabtype *init_wintabs_environment( tabtype *tab, int wide )
                 tab->next->length = PRESENTATION_LENGTH;
                 tab->next->opt = filename;
 				tab->next->prev = tab;
+				tab->next->next = NULL;
             }
 
 		tab = sorttabs( tab, wide );
@@ -674,7 +869,13 @@ filetypeAction *init_fileAction()
 											{
 												if( buff[i+v] != '\n' )
 													{
-														action->filetype[v-1] = buff[i+v];
+														if( buff[i+v] == '\'' && buff[i+v+1] == ' ' && buff[i+v+2] == '\'' )
+															{ //the no filetype, filetype
+																strcpy( action->filetype, " " );
+																v += 2;
+															}
+														else
+															action->filetype[v-1] = buff[i+v];
 													}
 
 												v++;											
@@ -765,6 +966,8 @@ shortcutType *init_shortcuts()
 												shortCuts->dir[v-1] = buff[i+v];
 												v++;
 											}
+
+										shortCuts->dir[v-1] = '\0';
 
 										//prepare for new shortcut
 										shortCuts->next = malloc( sizeof(shortcutType) );

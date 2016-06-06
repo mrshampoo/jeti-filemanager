@@ -11,6 +11,10 @@ this program is distributed under the terms of the GNU General Public License*/
 	int set_configname( char path[] );
 	int set_terminalname( char terminal[] );
 	int get_terminalname();
+	int set_dialogwinreactions( int dw_reactions );
+	int get_dialogwinreactions();
+	int set_logpath( char logpath[] );
+	int get_logpath();
 	Windowtype *init_win_colors( Windowtype *win );
 	tabtype *gettab( tabtype *tab, int n );
 	tabtype *sorttabs( tabtype *tab, int wide );

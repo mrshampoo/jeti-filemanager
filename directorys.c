@@ -133,7 +133,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 										}
 								}
 
-							while( obj->filetype[0] == ' ' )
+							while( obj->filetype[0] == ' ' && obj->filetype[1] != '\0' )
 								{/*push filetype text to the left when finnished*/
 									strcpy( obj->filetype, obj->filetype +1 );
 								}
@@ -251,7 +251,7 @@ dirEntry *bubbeladd( dirEntry *filelist, dirEntry *obj )
 		int x;
 		int rooted = 0; //true when the object has found its home
 
-		systemlog( 3, "bubbleadd entry\n" );
+		systemlog( 4, "bubbleadd entry\n" );
 		while( !rooted )
 			{
 				//place all <DIR>'s at top and sort them separatly
@@ -318,28 +318,54 @@ dirEntry *bubbeladd( dirEntry *filelist, dirEntry *obj )
 		if( filelist->next != NULL )
 			filelist = getlast_and_add( filelist->next );
 
-		systemlog( 3, "bubbleadd entry successful" );
+		systemlog( 4, "bubbleadd entry successful" );
 		return filelist;
 
 	}
 
 dirEntry *gotoEntry( dirEntry *filelist, int filenr )
 	{
+		int outofrange = 0;
+		char erroroutput[16];
+
 		systemlog( 4, "enterd gotoentry" );
 		while( filelist->number != filenr )
 		{
-				if( filenr > filelist->number && filelist->next != NULL )
+				if( !outofrange && filenr > filelist->number && filelist->next != NULL )
 					{
 						filelist = filelist->next;
 					}
-				else if( filenr < filelist->number  && filelist->prev != NULL )
+				else if( !outofrange && filenr < filelist->number  && filelist->prev != NULL )
 					{
 						filelist = filelist->prev;
 					}
+				else if( filenr == filelist->number )
+					{
+						//file was found
+						break;
+					}
+				else if( outofrange && filenr > filelist->number && filelist->prev != NULL )
+					{
+						//backward searching
+						filelist = filelist->prev;
+					}
+				else if( outofrange && filenr < filelist->number  && filelist->next != NULL )
+					{
+						//backward searching
+						filelist = filelist->next;
+					}
 				else
 					{
-						systemlog( 1, "ERROR: gotoEntry: out of range");
-						break;
+						if( outofrange )
+							{
+								systemlog( 1, "ERROR: gotoEntry: out of range:");
+
+								snprintf(erroroutput, 16, " %d - %d\n", filenr, filelist->number );
+								systemlog( 91, erroroutput );
+								break;
+							}
+
+						outofrange = 1;
 					}
 		}
 		return filelist;

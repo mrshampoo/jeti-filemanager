@@ -7,6 +7,7 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "autocomplete.h"
 #include "directorys.h"
 #include "window.h"
+#include "systemlog.h"
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
@@ -274,8 +275,10 @@ int trowcmd( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin )
 
 void destroycmdwin( cmdWindowtype *cw )
 	{
+		systemlog( 2, "destroying command window" );
 		cw->hidden = 1;
 		clearcmd( cw );
 		delwin( cw->win );
 			free( cw );
+		systemlog( 2, "command window destroyd");
 	}

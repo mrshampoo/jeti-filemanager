@@ -8,22 +8,27 @@ this program is distributed under the terms of the GNU General Public License*/
  #define _projecttypes_
 
 	//#define CONFIGNAME "jeti.rc"
-	#define COMMANDLENGTH 250
+	#define COMMANDLENGTH 256
 	#define CMDHISTORY 10
 	#define SIZE_HISTORY 50
-	#define SIZE_WORKDIREKTORY 250
+	#define SIZE_WORKDIREKTORY 256
 	#define NUMBEROFCOLORS 10
-	#define PRESENTATION_LENGTH 200
+	#define PRESENTATION_LENGTH 256
 	#define TYPE_LENGTH 10
-	#define DIRLENGTH 250
+	#define DIRLENGTH 256
 	#define SIZE_SIZE 5
+	#define PASSWD_LENGTH 64
 
 	#ifndef _globals_
-		char TERMINALNAME[250];
-		char CONFIGNAME[250];
+		char TERMINALNAME[256];
+		char CONFIGNAME[256];
+		char FILEPATH_LOG[248];
+		int DW_REACTION;
 	#else
-		extern char TERMINALNAME[250];
-		extern char CONFIGNAME[250];
+		extern char TERMINALNAME[256];
+		extern char CONFIGNAME[256];
+		extern char FILEPATH_LOG[248];
+		extern int DW_REACTION;
 	#endif
 
 	typedef enum printoption 
@@ -58,7 +63,7 @@ this program is distributed under the terms of the GNU General Public License*/
 	typedef struct shortcutType
         {
             int x,y;
-            char dir[SIZE_WORKDIREKTORY];
+            char dir[512];
             char label;
             struct shortcutType* next;
             struct shortcutType* prev;
@@ -113,5 +118,14 @@ this program is distributed under the terms of the GNU General Public License*/
             char ddir[SIZE_WORKDIREKTORY];	//destination dir, keeps track of the passiv windows workdirectory
             char currentcmd[CMDHISTORY+1][COMMANDLENGTH];
         }cmdWindowtype;
+
+	typedef struct dialogwindowtype
+		{
+			WINDOW *win;
+			WINDOW *yes;
+			WINDOW *no;
+			int h,w,x,y;
+			int hidden;
+		}dialogwindowtype;
 
 #endif

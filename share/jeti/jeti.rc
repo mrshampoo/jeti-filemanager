@@ -1,5 +1,7 @@
 -= GENERAL =-=-=-=-=-=-=->
 terminal.name: xterm
+logfile.path: /tmp
+dialogwindow.reactions: 25
 window.showhiden: 0
 window.startdirectory: cwd
 
@@ -25,11 +27,11 @@ window.color.error: 1
 window.color.selected: 1
 
 -= TYPE ACTION =-=-=-=-=->
-#example: file.type: "lxterminal --title=$f -e vim " c,h,rc,txt,conf,log
+file.type: "lxterminal --title=$f -e vim " c,' ',h,rc,txt,conf,log
 
 -= SHORTCUTS =-=-=-=-=->
 window.shortcut: 'H' "$hidden"
-window.shortcut: 'E' "$noexe"
+window.shortcut: 'E' "$exec xterm -e vi $f"
 window.shortcut: 'M' "$mute"
 window.shortcut: 'P' "$passiv"
 window.shortcut: '~' "$home"

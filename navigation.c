@@ -11,6 +11,7 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "autocomplete.h"
 #include "soundeffects.h"
 #include "systemlog.h"
+#include "dialog-window.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -20,8 +21,33 @@ this program is distributed under the terms of the GNU General Public License*/
 #include <stdlib.h>
 #include <unistd.h>
 
+static dialogwindowtype *dialogwin;
+
+void init_navigation()
+	{
+		systemlog( 2, "init_navigation");
+
+		dialogwin = new_dialogwindow( 8, 29, (LINES/2)-4, (COLS/2)-14 );	
+	}
+void redefine_navigation()
+	{
+		systemlog( 2, "redefine_navigation" );
+
+		destroy_dialogwin( dialogwin );
+		dialogwin = new_dialogwindow( 8, 29, (LINES/2)-4, (COLS/2)-14 );
+		clear_dialogwin( dialogwin );
+	}
+void destroy_navigation()
+	{
+		systemlog( 2, "destroy navigation" );
+
+		destroy_dialogwin( dialogwin );
+	}
+
 int scrollupp( Windowtype *win, soundeffectType *sounds )
 	{
+		systemlog( 3, "scrollupp" );
+
 		if( win->slide[win->mlevel] > 0 )
 			{
 				win->slide[win->mlevel]--;
@@ -37,6 +63,8 @@ int scrollupp( Windowtype *win, soundeffectType *sounds )
 
 int scrolldown( Windowtype *win, soundeffectType *sounds )
 	{
+		systemlog( 3, "scrolldown" );
+
 		if( win->slide[win->mlevel] + win->h -4 < printtotalnr( win->filelist ) )
 			{
 				win->slide[win->mlevel]++;
@@ -52,6 +80,8 @@ int scrolldown( Windowtype *win, soundeffectType *sounds )
 
 int stepupp( Windowtype *win, soundeffectType *sounds )
 	{
+		systemlog( 3, "stepupp" );
+
 		if( win->marker[win->mlevel]-1 <= win->slide[win->mlevel] && win->slide[win->mlevel] > 0 )
 			{
 				win->marker[win->mlevel]--;
@@ -75,6 +105,8 @@ int stepupp( Windowtype *win, soundeffectType *sounds )
 
 int stepdown( Windowtype *win, soundeffectType *sounds )
 	{
+		systemlog( 3, "stepdown" );
+
 		if( win->marker[win->mlevel] != printtotalnr( win->filelist ) && win->marker[win->mlevel]-1 < win->h + win->slide[win->mlevel] -4 )
 			{
 				//slide reached the bottom
@@ -99,6 +131,8 @@ int stepdown( Windowtype *win, soundeffectType *sounds )
 
 int selectfile( Windowtype *win, soundeffectType *sounds )
 	{
+		systemlog( 3, "selectfile" );
+
 		win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
 
 		//toggle select
@@ -129,6 +163,8 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 		char cmd[250];
 
 		cmd[0] = '\0';
+
+		systemlog( 2, "enter" );
 
 		win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
 
@@ -202,9 +238,8 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 				//check executable or if no atribute was found
 				if( S_IEXEC & win->filelist->status && win->noexe == 0 )
 					{
-          				strcpy( cmd, TERMINALNAME );
+						strcpy( cmd, TERMINALNAME );
 						strcat( cmd, " -e " );
-						printf( cmd );
 					}
 				else if( !isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) )
 					{
@@ -225,7 +260,7 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 						strcpy( tmpcmd, win->wd );
         				if( win->wd[strlen(win->wd)-1] != '/' )
           					{
-            					strcat( tmpcmd, "/" );
+            						strcat( tmpcmd, "/" );
           					}
         				strcat( tmpcmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->file->d_name );
 
@@ -242,7 +277,6 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 
         				system( cmd );
 						repaint = 1;
-						systemlog( 1, cmd );
 
 					}
 
@@ -262,12 +296,16 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 		char tcmd[256];
 		char dir[SIZE_WORKDIREKTORY];
 
+		systemlog( 2, "handleshortcut");
+
 		if( !strncmp( awin->shortcuts->dir, "$passiv", 7 ) )
 			{
+				systemlog( 4, "$passiv");
 				strcpy( dir, pwin->wd );
 			}
 		else if( !strncmp( awin->shortcuts->dir, "$home", 5 ) )
 			{
+				systemlog( 4, "$home" );
 				if((homedir = getenv("HOME")) == NULL )
 					{
 						homedir = getpwuid( getuid() )->pw_dir;
@@ -276,6 +314,7 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 			}
 		else if( !strncmp( awin->shortcuts->dir, "$hidden", 7 ) )
 			{
+				systemlog( 4, "$hidden" );
 				if( awin->showhidden )
 					awin->showhidden = 0;
 				else
@@ -285,26 +324,31 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 			}
 		else if( !strncmp( awin->shortcuts->dir, "$noexe", 5 ) )
 			{
+				systemlog( 4, "$noexe");
 				if( awin->noexe )
-                    awin->noexe = 0;
-                else
-                    awin->noexe = 1;
+					awin->noexe = 0;
+				else
+					awin->noexe = 1;
 
-                strcpy( dir, awin->wd );
+				strcpy( dir, awin->wd );
 			}
 		else if( !strncmp( awin->shortcuts->dir, "$mute", 5 ) )
 			{
-                toggle_mute();
+				systemlog( 4, "$mute" );
+                		toggle_mute();
 
-                strcpy( dir, awin->wd );
-            }
+                		strcpy( dir, awin->wd );
+            		}
 		else if( !strncmp( awin->shortcuts->dir, "$exec", 5 ) )
 			{d+=6;
+				systemlog( 4, "$exec" );
+				systemlog( 95, awin->shortcuts->dir +d );
+				systemlog( 95, awin->wd );
 
 				find_and_add_dir( cmd, awin->shortcuts->dir +d, awin->wd );
-				strcat( cmd ," > /dev/null 2>&1" );
+				strcat( cmd ," > /dev/null 2>&1 &" );
 
-				for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
+				for( x = 1; x <= printtotalnr( awin->filelist ); x++ )
 					{
 						awin->filelist = gotoEntry( awin->filelist, x );
 						if( awin->filelist->selected && find_and_add_fp( tcmd, cmd, awin->filelist->file->d_name ) )
@@ -314,24 +358,36 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 
 								selected++;
 								awin->filelist->selected = 0;
+
+								systemlog( 5, "file#");
+								systemlog( 95, tcmd );
 								system( tcmd );
 							}
 					}
 				if( !selected )
-					system( cmd );
+					{
+						systemlog( 5, "simple#");
+						systemlog( 95, cmd );
+						system( cmd );
+					}
+
+				strcpy( dir, awin->wd );
 			}
 		else if( !strncmp( awin->shortcuts->dir, "_", 1 ) )
 			{
+				systemlog( 4, "noshortcut-shortcut");
 				//do nothing: this is the noshortcuts-shortcut
 			}
 		else
 			{
+				systemlog( 4,"goto dir:" );
+				systemlog( 94, awin->shortcuts->dir );
 				strcpy( dir, awin->shortcuts->dir );
 			}
 
 		awin->mlevel = 0;    
-        awin->marker[awin->mlevel] = -1;
-        awin->slide[awin->mlevel] = 0;
+		awin->marker[awin->mlevel] = -1;
+		//awin->slide[awin->mlevel] = 0;
 
 		playsound( sounds, 13 );
 		loadnewdir( awin, dir );
@@ -341,24 +397,39 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 	{
 		int x = 0;
-		int repaint = 0;
-		char empty[1];
+		int repaint = 1;
+		int quote = 0;
+		int pass = 0;
 		char cmd[COMMANDLENGTH];
-		char dir[COMMANDLENGTH];
+		char passwd[PASSWD_LENGTH];
 
-		empty[0] = '\0';
+		systemlog( 2, "copyfiles" );
 
 		chdir( awin->wd );
 
-		if( !access(pwin->wd, W_OK) )
+		keypad( awin->win, FALSE );
+		if( ( pass = print_dialogwin( dialogwin, awin, pwin->wd, 2, "Are you shure you want to copy these?", passwd ) ) )
 			{
-				for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
+				for( x = 1; x <= printtotalnr( awin->filelist ); x++ )
 					{
 						awin->filelist = gotoEntry( awin->filelist, x );
 						if( awin->filelist->selected )
 							{
-								strcpy( dir, empty );
-								strcpy( cmd, "cp ");
+								if( pass == 2 && access( pwin->wd, W_OK ) && (DW_REACTION & 8) )
+									{
+										strcpy( cmd, "echo " );
+										strcat( cmd, passwd );
+										strcat( cmd, " | su -c \"cp ");
+										quote = 1;
+									}
+								else if( access( pwin->wd, W_OK ) && (DW_REACTION & 4) )
+									{
+										strcpy( cmd, "sudo cp " );
+									}
+								else
+									{
+										strcpy( cmd, "cp ");
+									}
 
 								if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
 									strcat( cmd, "-r " );
@@ -366,8 +437,15 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 								addslash( cmd, awin->filelist->file->d_name );
 								strcat( cmd, " " );
 
-								addslash( dir, pwin->wd );
-								strcat( cmd, dir );
+								addslash( cmd, pwin->wd );
+
+								if( quote )
+									{
+										strcat( cmd, "\"" );
+										quote = 0;
+									}
+
+								strcat( cmd, " >/dev/null 2>/dev/null" );
 
 								system( cmd );
 						
@@ -376,6 +454,8 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 							}
 					}
 			}
+
+		keypad( awin->win, TRUE );
 
 		if( repaint )
 			{
@@ -391,36 +471,61 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 	{
 		int x = 0;
-    int repaint = 0;
-	char empty[1];
-    char cmd[COMMANDLENGTH];
-	char dir[COMMANDLENGTH];
+		int repaint = 1;
+		int quote = 0;
+		int pass = 0;
+		char cmd[COMMANDLENGTH];
+		char passwd[PASSWD_LENGTH];
 
-	empty[0] = '\0';
-    chdir( awin->wd );
+		systemlog( 2, "movefiles" );
 
-	if( !access(pwin->wd, W_OK) )
-		{
-    		for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
-      			{
-        			awin->filelist = gotoEntry( awin->filelist, x );
-        			if( awin->filelist->selected )
-          				{
-							strcpy( dir, empty );
-            				strcpy( cmd, "mv ");
+		chdir( awin->wd );
 
-            				addslash( cmd, awin->filelist->file->d_name );
-            				strcat( cmd, " " );
-							addslash( dir, pwin->wd );
-            				strcat( cmd, dir );
+		keypad( awin->win, FALSE );
+		if( ( pass = print_dialogwin( dialogwin, awin, pwin->wd, 3, "Are you shure you want to move these?", passwd ) ) )
+			{
+				for( x = 1; x <= printtotalnr( awin->filelist ); x++ )
+					{
+						awin->filelist = gotoEntry( awin->filelist, x );
+						if( awin->filelist->selected )
+							{
+								if( pass == 2 && ( access( awin->filelist->file->d_name, W_OK ) || access( awin->filelist->file->d_name, W_OK )) && (DW_REACTION & 8) )
+									{
+										strcpy( cmd, "echo " );
+										strcat( cmd, passwd );
+										strcat( cmd, " | su -c \"mv " );
+										quote = 1;
+									}
+								else if( ( access( awin->filelist->file->d_name, W_OK ) || access( pwin->wd, W_OK ) ) && (DW_REACTION & 4) )
+									{
+										strcpy( cmd, "sudo mv " );
+									}
+								else
+									{
+										strcpy( cmd, "mv ");
+									}
 
-            				system( cmd );
+								addslash( cmd, awin->filelist->file->d_name );
+								strcat( cmd, " " );
+								addslash( cmd, pwin->wd );
 
-            				awin->filelist->selected = 0;
-            				repaint++;
-          				}
-      			}
-		}
+								if( quote )
+									{
+										strcat( cmd, "\"" );
+										quote = 0;
+									}
+
+								strcat( cmd, " >/dev/null 2>/dev/null" );
+
+								system( cmd );
+
+								awin->filelist->selected = 0;
+								repaint++;
+							}
+					}
+			}
+
+		keypad( awin->win, TRUE );
 
 		if( repaint )
 			{
@@ -430,44 +535,75 @@ int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 				repaint++;
 			}
 
-    return repaint;
+		return repaint;
 	}
 
 int removefiles( Windowtype *awin, soundeffectType *sounds )
 	{
 		int x = 0;
-    int repaint = 0;
-    char cmd[COMMANDLENGTH];
+		int repaint = 1;
+		int quote = 0;
+		int pass = 0;
+		char cmd[COMMANDLENGTH];
+		char passwd[PASSWD_LENGTH];
 
-    chdir( awin->wd );
+		systemlog( 2, "removefiles" );
 
-	if( !access(awin->wd, W_OK) )
-		{
-    		for( x = 0; x <= printtotalnr( awin->filelist ); x++ )
-      			{
-        			awin->filelist = gotoEntry( awin->filelist, x );
-        			if( awin->filelist->selected )
-          				{
-            				strcpy( cmd, "rm ");
-            				if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
-                				strcat( cmd, "-r " );
+		chdir( awin->wd );
 
-            				addslash( cmd, awin->filelist->file->d_name );
+		keypad( awin->win, FALSE );
+		if( ( pass = print_dialogwin( dialogwin, awin, awin->wd, 1, "Are you shure you want to remove these?", passwd ) ) )
+			{
+				for( x = 1; x <= printtotalnr( awin->filelist ); x++ )
+					{
+						awin->filelist = gotoEntry( awin->filelist, x );
+						if( awin->filelist->selected )
+							{
+								if( pass == 2 && access( awin->filelist->file->d_name, W_OK ) && (DW_REACTION & 8) )
+									{
+										strcpy( cmd, "echo " );
+										strcat( cmd, passwd );
+										strcat( cmd, " | su -c \"rm ");
+										quote = 1;
+									}
+								else if( access( awin->filelist->file->d_name, W_OK ) && (DW_REACTION & 4) )
+									{
+										strcpy( cmd, "sudo rm " );
+									}
+								else
+									{
+										strcpy( cmd, "rm ");
+									}
 
-            				system( cmd );
+								if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
+									strcat( cmd, "-r " );
 
-            				awin->filelist->selected = 0;
-            				repaint++;
-          				}
-      			}
-		}
+								addslash( cmd, awin->filelist->file->d_name );
+							
+								if( quote )
+									{
+										strcat( cmd, "\"" );
+										quote = 0;
+									}
+
+								strcat( cmd, " >/dev/null 2>/dev/null" );
+
+								system( cmd );
+
+								awin->filelist->selected = 0;
+								repaint++;
+							}
+					}
+			}
+
+		keypad( awin->win, TRUE );
 
 		if( repaint )
-		  {
-			playsound( sounds, 12 );
-			loadnewdir( awin, awin->wd );
-		  }
+			{
+				playsound( sounds, 12 );
+				loadnewdir( awin, awin->wd );
+			}
 
-    return repaint;
+		return repaint;
 	}
 

@@ -9,7 +9,7 @@ Uninstall:
 
 basic usage:
 	closing: 
-		or ctrl+c
+		ctrl+c (if it still dosent close, hit random key, there was stuff left in the input que)
 		or simply push the 'X' button in the corner of your terminal ( Jeti should be able to handle this ;) )
 
 	navigation:
@@ -64,7 +64,7 @@ basic usage:
 
 the jeti.rc file:
 	install:
-		"mv ./jeti.rc ~/.jeti.rc"
+		"mv ./share/jeti/jeti.rc ~/.jeti.rc"
 		or "mv share/jeti/jeti.rc $HOME/.jeti.rc"
 		or "mv share/jeti/jeti.rc $XDG_CONFIG_HOME/"
 		or "mv share/jeti/jeti.rc $XDG_DATA_DIRS/jeti/"
@@ -72,6 +72,22 @@ the jeti.rc file:
 	general:
 		terminal.name: <terminal>
 			for executing of scripts and other binarys.
+
+		logfile.path: <path>
+			a directory where the logfile will be stored when using -l, if non set it will put it in your home
+
+		dialogwindow.reactions: <int>
+			if this is set, jeti will ask for password or if you are shure
+
+			1 activate dialog window when no access
+			2 activate dialog window on all (on every thing)
+			4 when no access, just put sudo infront (nonpassword sudo)
+			8 ask for password (su -c)
+			16 star password
+			32 dont show password at all
+
+			example: dialogwindow.reactions: 25
+			this will ask for root password when no write access and star it when writing
 
 		window.showhiden: <bool>
 			0 : don't show hidden files at start up (default)
@@ -147,8 +163,10 @@ the jeti.rc file:
 		file.type: "<command>" <filetype>,<filetype>..,<filetype>
 			where <command> is, is the command to be executed when any of the file types are entered. The command will be followed by the directory and file 			name.
 
+			use ' ' for the none filetype
+
 			Variable "$fn" can be used to send file name as a parameter.
-			Example:  file.type: "lxterminal --title=$fn -e vim " c,h,rc,txt
+			Example:  file.type: "lxterminal --title=$fn -e vim " c,h,rc,' ',txt
 				to sett vim border tittle to file name, when entering a text file.
 
 	Shortcuts:

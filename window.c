@@ -18,7 +18,7 @@ Windowtype *newwindow( int h, int w, int y, int x )
 	{
 		Windowtype *win;
 		
-		systemlog( 2, "creating new window...\n" );
+		systemlog( 2, "creating new window..." );
 
 		win = malloc(sizeof(Windowtype));
 
@@ -42,13 +42,13 @@ Windowtype *newwindow( int h, int w, int y, int x )
 			win->hidden = 0;
 			win->noexe = 0;
 
-		systemlog( 2, "window created\n");
+		systemlog( 2, "window created");
 		return win;
 	}
 
 Windowtype *redefinewindow( Windowtype *win, int h, int w, int y, int x )
 	{
-		systemlog( 3, "redefining window..\n" );
+		systemlog( 3, "redefining window.." );
 
 		win->hidden = 1;
 		clearwindow( win );
@@ -63,7 +63,7 @@ Windowtype *redefinewindow( Windowtype *win, int h, int w, int y, int x )
     win = init_win_colors( win );
 		win->tab = init_wintabs_environment( win->tab, win->w );
 
-		systemlog( 3, "window redefined\n" );
+		systemlog( 3, "window redefined" );
 		return win;
 	}
 
@@ -74,7 +74,7 @@ int loadnewdir( Windowtype *win, char wd[] )
 
 		if( !access(wd, R_OK) )
 			{
-				systemlog( 3, "loading new dir..\n" );
+				systemlog( 3, "loading new dir.." );
 
 				closedir( win->dir );
 
@@ -84,25 +84,31 @@ int loadnewdir( Windowtype *win, char wd[] )
         				i++;
       				}
       			win->wd[i] = '\0';
-					systemlog( 5, "enterd new pathname successfuly.\n" );
+					systemlog( 5, "enterd new pathname successfuly." );
 
 				win->dir = opendir( wd );
-					systemlog( 5, "dir was able to open successfuly.\n" );
+					systemlog( 5, "dir was able to open successfuly." );
 				win->filelist = getEntrys( win->dir, wd, win->filelist, win->showhidden );
 
-				systemlog( 3, "new dir loaded\n" );
+				systemlog( 3, "new dir loaded" );
 			}
 		else
 			{
 				success = 0;
-				systemlog( 1, "ERROR: no read access\n" );
+				systemlog( 1, "ERROR: loadnewdir: no read access:" );
+				systemlog( 91, wd );
 			}
+
+		systemlog( 3, "new dir loaded successfuly" );
+		systemlog( 93, win->wd );
 		return success;
 	}
 
 int filesize_length( int fsize )
 	{
 		int size = 1;
+
+		systemlog( 4, "enterd fsize");
 
 			while( fsize > 1000 )
 				{
@@ -131,7 +137,7 @@ void printwindow( Windowtype *win )
 				listsize,
 				endofname = 0;
 
-		systemlog( 2, "trying to prit window...\n" );
+		systemlog( 2, "trying to prit window..." );
 
 		//only start thees onse, else there will be a paint leakage
 		if( colors_not_started )
@@ -155,7 +161,7 @@ void printwindow( Windowtype *win )
 			{
 
 				/*get number of printeble objects*/
-				systemlog( 4,"get number of printeble objects\n" );
+				systemlog( 4,"get number of printeble objects" );
 				if( win->h-1 > (getlast( win->filelist))->number + 1 )
 					{
 						listsize = (getlast( win->filelist ))->number + 1;
@@ -166,7 +172,7 @@ void printwindow( Windowtype *win )
 					}
 
 				/* how far down in the filelist are we?*/
-				systemlog( 4,"how far down in the filelist are we?\n" );
+				systemlog( 4,"how far down in the filelist are we?" );
 				if( ((getlast(win->filelist))->number - win->slide[win->mlevel] < win->h -2) && win->slide[win->mlevel] != 0 )
 					{
 						if( (getlast(win->filelist))->number +2 - win->h < 0 )
@@ -176,7 +182,7 @@ void printwindow( Windowtype *win )
 					}
 
 				/* window decorations */
-				systemlog( 4,"window decorations\n" );
+				systemlog( 4,"window decorations" );
 				wattron( win->win, COLOR_PAIR(1) );
 				wattroff( win->win, A_REVERSE );
 				clear();
@@ -187,11 +193,11 @@ void printwindow( Windowtype *win )
 					}
 
 				//rewind shourtcuts
-				systemlog( 4,"rewind shourtcuts\n" );
+				systemlog( 4,"rewind shourtcuts" );
 				while( win->shortcuts->prev != NULL )
 					win->shortcuts = win->shortcuts->prev;
 				//Decorate with shortcuts
-				systemlog( 4,"Decorate with shortcuts\n" );
+				systemlog( 4,"Decorate with shortcuts" );
 				for( y = 1; ( y < win->h-1) && ( win->shortcuts->dir[0] != '_' ); y++ )
 					{
 						if( win->shortcuts->next != NULL )
@@ -202,7 +208,7 @@ void printwindow( Windowtype *win )
 							}
 						else if( win->shortcuts->next == NULL )
 							{
-								systemlog( 5,"printing last shourtcut.\n" );
+								systemlog( 5,"printing last shourtcut." );
 								mvwprintw( win->win, y, 0, "%c", win->shortcuts->label );
 								break;
 							}
@@ -210,7 +216,7 @@ void printwindow( Windowtype *win )
 			//--= window substans  =----------------------------------------------------->
     		for( y = 1; y < win->h-1; y++ )
 					{
-						systemlog( 6,"--= inside window substans =--\n" );
+						systemlog( 6,"--= inside window substans =--" );
 
 						//test that we are not out of file_range before calling these funktions
 						if( y+win->slide[win->mlevel] <= getlast( win->filelist )->number )
@@ -219,7 +225,7 @@ void printwindow( Windowtype *win )
 								win->filelist = gotoEntry( win->filelist, y+win->slide[win->mlevel] );
 
 								//collorate row tru filetype
-								systemlog( 6,"collorate row tru filetype\n" );
+								systemlog( 6,"collorate row tru filetype" );
 								if( win->filelist->selected )
 									filecolor = 9;
 								else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "ERROR") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "linkER"))
@@ -415,7 +421,7 @@ void printwindow( Windowtype *win )
 			}
 
 		wrefresh( win->win );
-		systemlog( 2, "window printed\n" );
+		systemlog( 2, "window printed" );
 	}
 
 void clearwindow( Windowtype *win )
@@ -423,7 +429,7 @@ void clearwindow( Windowtype *win )
 		int x, 
 			y;
 
-		systemlog( 2, "clearing window...\n" );
+		systemlog( 2, "clearing window..." );
 
 		for( y = 0; y < win->h; y++ ){
 			for( x = 0; x < win->w; x++ ){
@@ -437,20 +443,20 @@ void clearwindow( Windowtype *win )
 			}
 		}
 
-		systemlog( 2, "window cleard\n" );
+		systemlog( 2, "window cleard" );
 
 	}
 
 int toglehidewin( Windowtype *win )
 	{
-		systemlog( 3, "hiding window..\n" );
+		systemlog( 3, "hiding window.." );
 		if( win->hidden )
 			win->hidden = 0;
 
 		else
 			win->hidden = 1;
 
-		systemlog( 3, "window hidden\n" );
+		systemlog( 3, "window hidden" );
 		return win->hidden;
 	}
 
@@ -458,7 +464,7 @@ int insidewindow( Windowtype *win, int y, int x )
 	{
 		int inside = 0;
 		
-		systemlog( 3, "testing if inside window.\n" );
+		systemlog( 3, "testing if inside window." );
 
 			if( (x > win->x) && (x < win->x + win->w)
 			 && (y > win->y) && (y < win->y + win->h) )
@@ -473,7 +479,7 @@ int onshortcutrow( Windowtype *win, int y, int x )
 	{
 		int spoton = 1;
 
-		systemlog( 3, "testing if on shourtcut.\n" );
+		systemlog( 3, "testing if on shourtcut." );
 
 		win->shortcuts = getshortcut( win->shortcuts, 1 );	
 
@@ -497,7 +503,7 @@ int onshortcutrow( Windowtype *win, int y, int x )
 
 shortcutType *getshortcut( shortcutType *shorty, int pos )
 	{
-		systemlog( 3, "seeking shourtcut.\n" );
+		systemlog( 3, "seeking shourtcut." );
 
 		while( shorty->prev != NULL )
 			{
@@ -514,7 +520,7 @@ shortcutType *getshortcut( shortcutType *shorty, int pos )
 
 void destroywindow( Windowtype *win ) 
 	{
-		systemlog( 3, "destroying window..\n" );
+		systemlog( 2, "destroying window.." );
 
 		win->hidden = 1;
 		clearwindow( win );
@@ -527,5 +533,5 @@ void destroywindow( Windowtype *win )
 		delwin( win->win );
 			free( win );
 
-		systemlog( 2, "window destroyd\n" );
+		systemlog( 2, "window destroyd" );
 	}
