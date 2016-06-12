@@ -66,8 +66,16 @@ void systemlog( int priority, char logmessage[] )
 						fclose( file );
 
 			}
-		else if( priority == 1 || priority == 91 )
+		else if( FILEPATH_LOG[0] == '\0' && ( priority == 1 || priority == 91 ) )
 			{
+				if( !last_was_newline )
+					printf( "\n" );
+
 				printf( logmessage );
+
+				if( logmessage[strlen(logmessage)-1] != '\n' )
+					printf( "\n" );
+				
+				last_was_newline = 1;
 			}
 	}

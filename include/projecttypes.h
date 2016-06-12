@@ -78,24 +78,25 @@ this program is distributed under the terms of the GNU General Public License*/
         }soundeffectType;
 
 	typedef struct dirEntry
-    	{
-      		struct dirent* file;
-      		int number;
-            int selected;
-            int filesize;
-            int status;
-            char presentation[PRESENTATION_LENGTH];
-            char filetype[TYPE_LENGTH];
-      		struct dirEntry* next;
-      		struct dirEntry* prev;
-    	}dirEntry;
+		{
+      			struct dirent* file;
+      			int number;
+			int selected;
+			int filesize;
+			int status;
+			char presentation[PRESENTATION_LENGTH];
+			char filename[PRESENTATION_LENGTH];
+			char filetype[TYPE_LENGTH];
+			struct dirEntry* next;
+			struct dirEntry* prev;
+		}dirEntry;
 
 	typedef struct Windowtype
         {
             int h,w,x,y;
             int hidden; 				//is the window hidden or not?
             int showhidden;				//show hidden files and link paths
-			int noexe;					//do not execute executables, use fileaction on them instead
+		int noexe;					//do not execute executables, use fileaction on them instead
             int mlevel;					//marker level, keeps track of wish directory the marker height was stored
             int marker[SIZE_HISTORY];
             int slide[SIZE_HISTORY];

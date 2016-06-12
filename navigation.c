@@ -170,7 +170,7 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 
 		if( isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR>" ) || isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR L>" ) || isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR LE>") )
 			{
-  				while( win->filelist->file->d_name[i] == dubbledot[i] && i < 2 )
+  				while( win->filelist->filename[i] == dubbledot[i] && i < 2 )
    	 				{/*check for dubbledot*/ i++; }
 
     			if( i == 2 )
@@ -198,7 +198,7 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 						loadnewdir( win, cmd );
 						playsound( sounds, 1 );
 					}
-				else if( i == 1 && strlen(win->filelist->file->d_name) == 1 )
+				else if( i == 1 && strlen(win->filelist->filename) == 1 )
 					{/*singledot*/
 						win->marker[win->mlevel] = -1;
 						strcpy( cmd, win->wd );
@@ -211,7 +211,7 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 						if( win->wd[strlen(win->wd)-1] != '/')
 							strcat( cmd, "/");
 
-						strcat( cmd, win->filelist->file->d_name );
+						strcat( cmd, win->filelist->filename );
 						strcat( cmd, "/");
 
 						if( loadnewdir( win, cmd ) )
@@ -252,7 +252,7 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 						notexec = 1;
 					}
 
-				find_and_add_fp( cmd, cmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->file->d_name );
+				find_and_add_fp( cmd, cmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->filename );
 
 				if( cmd[0] != '\0' )
 					{
@@ -262,7 +262,7 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
           					{
             						strcat( tmpcmd, "/" );
           					}
-        				strcat( tmpcmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->file->d_name );
+        				strcat( tmpcmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->filename );
 
 						addslash( cmd, tmpcmd );
 
@@ -351,7 +351,7 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 				for( x = 1; x <= printtotalnr( awin->filelist ); x++ )
 					{
 						awin->filelist = gotoEntry( awin->filelist, x );
-						if( awin->filelist->selected && find_and_add_fp( tcmd, cmd, awin->filelist->file->d_name ) )
+						if( awin->filelist->selected && find_and_add_fp( tcmd, cmd, awin->filelist->filename ) )
 							{
 								if( !selected )
 									chdir( awin->wd );
@@ -434,7 +434,7 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 								if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
 									strcat( cmd, "-r " );
 
-								addslash( cmd, awin->filelist->file->d_name );
+								addslash( cmd, awin->filelist->filename );
 								strcat( cmd, " " );
 
 								addslash( cmd, pwin->wd );
@@ -489,14 +489,14 @@ int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 						awin->filelist = gotoEntry( awin->filelist, x );
 						if( awin->filelist->selected )
 							{
-								if( pass == 2 && ( access( awin->filelist->file->d_name, W_OK ) || access( awin->filelist->file->d_name, W_OK )) && (DW_REACTION & 8) )
+								if( pass == 2 && ( access( awin->filelist->filename, W_OK ) || access( awin->filelist->filename, W_OK )) && (DW_REACTION & 8) )
 									{
 										strcpy( cmd, "echo " );
 										strcat( cmd, passwd );
 										strcat( cmd, " | su -c \"mv " );
 										quote = 1;
 									}
-								else if( ( access( awin->filelist->file->d_name, W_OK ) || access( pwin->wd, W_OK ) ) && (DW_REACTION & 4) )
+								else if( ( access( awin->filelist->filename, W_OK ) || access( pwin->wd, W_OK ) ) && (DW_REACTION & 4) )
 									{
 										strcpy( cmd, "sudo mv " );
 									}
@@ -505,7 +505,7 @@ int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 										strcpy( cmd, "mv ");
 									}
 
-								addslash( cmd, awin->filelist->file->d_name );
+								addslash( cmd, awin->filelist->filename );
 								strcat( cmd, " " );
 								addslash( cmd, pwin->wd );
 
@@ -559,14 +559,14 @@ int removefiles( Windowtype *awin, soundeffectType *sounds )
 						awin->filelist = gotoEntry( awin->filelist, x );
 						if( awin->filelist->selected )
 							{
-								if( pass == 2 && access( awin->filelist->file->d_name, W_OK ) && (DW_REACTION & 8) )
+								if( pass == 2 && access( awin->filelist->filename, W_OK ) && (DW_REACTION & 8) )
 									{
 										strcpy( cmd, "echo " );
 										strcat( cmd, passwd );
 										strcat( cmd, " | su -c \"rm ");
 										quote = 1;
 									}
-								else if( access( awin->filelist->file->d_name, W_OK ) && (DW_REACTION & 4) )
+								else if( access( awin->filelist->filename, W_OK ) && (DW_REACTION & 4) )
 									{
 										strcpy( cmd, "sudo rm " );
 									}
@@ -578,7 +578,7 @@ int removefiles( Windowtype *awin, soundeffectType *sounds )
 								if( isoffiletype( awin->filelist, awin->filelist->number, "<DIR>" ) )
 									strcat( cmd, "-r " );
 
-								addslash( cmd, awin->filelist->file->d_name );
+								addslash( cmd, awin->filelist->filename );
 							
 								if( quote )
 									{

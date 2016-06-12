@@ -27,7 +27,7 @@ window.color.error: 1
 window.color.selected: 1
 
 -= TYPE ACTION =-=-=-=-=->
-file.type: "lxterminal --title=$f -e vim " c,' ',h,rc,txt,conf,log
+file.type: "xterm -e vim " c,' ',h,rc,txt,conf,log
 
 -= SHORTCUTS =-=-=-=-=->
 window.shortcut: 'H' "$hidden"

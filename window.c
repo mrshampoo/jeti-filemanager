@@ -299,10 +299,10 @@ void printwindow( Windowtype *win )
 
           										case filename:
 																	systemlog( 7,"F" );
-																	if( x - win->tab->start >= 0 && x - win->tab->start < strlen( win->filelist->file->d_name ) )
+																	if( x - win->tab->start >= 0 && x - win->tab->start < strlen( win->filelist->filename ) )
 																		{	
 																			wattron( win->win, COLOR_PAIR( filecolor ) );
-																			mvwprintw( win->win, y, x, "%c", win->filelist->file->d_name[x - win->tab->start] );
+																			mvwprintw( win->win, y, x, "%c", win->filelist->filename[x - win->tab->start] );
 																		}
 																	else
 																		{

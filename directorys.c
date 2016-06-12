@@ -4,6 +4,7 @@ this program is distributed under the terms of the GNU General Public License*/
 /*--= directorys.c =------*/
 #include "projecttypes.h"
 #include "systemlog.h"
+#include "directorys.h"
 
 #include <unistd.h>
 #include <dirent.h>
@@ -11,7 +12,6 @@ this program is distributed under the terms of the GNU General Public License*/
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "directorys.h"
 
 dirEntry *getlast( dirEntry *filelist )
 	{
@@ -71,6 +71,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 
 		char path[SIZE_WORKDIREKTORY];
 		char link_target_path[SIZE_WORKDIREKTORY];
+		char rooted_link_path[SIZE_WORKDIREKTORY];
 		dirEntry *obj;
 		struct stat buf;
 		struct stat linkbuf;
@@ -89,9 +90,13 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 
 			 while( (obj->file = readdir(dir)) )
 				{/*file was found*/
+
+					//avoid useing d_name directly ( results in read errors )
+					strcpy( obj->filename, obj->file->d_name );
+					
 					strcpy( path, wd );
 					strcat( path, "/" );
-					strcat( path, obj->file->d_name );
+					strcat( path, obj->filename );
 					lstat( path , &buf );
 
 					obj->status = buf.st_mode;
@@ -109,25 +114,25 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 						{/*regular file*/
 							dotsize = 1;
 							strcpy( obj->filetype, "         " );
-							for( x = strlen(obj->file->d_name); x >= 0; x-- )
+							for( x = strlen(obj->filename); x >= 0; x-- )
 								{
-									if( obj->file->d_name[x] == '.' && x != 0 && dotsize != 0 )
+									if( obj->filename[x] == '.' && x != 0 && dotsize != 0 )
 										{/*dot found*/
 											dotsize = 0;
 											obj->presentation[x] = '\0';
 										}
 									else if( dotsize <= TYPE_LENGTH && dotsize != 0 && x != 0 )
 										{
-											obj->filetype[ TYPE_LENGTH - dotsize ] = obj->file->d_name[x];
+											obj->filetype[ TYPE_LENGTH - dotsize ] = obj->filename[x];
 											dotsize++;
 										}	
 									else if( dotsize == 0 )
 										{/*put the rest (name) in the presentation*/
-											obj->presentation[x] = obj->file->d_name[x]; 
+											obj->presentation[x] = obj->filename[x]; 
 										}
 									else
 										{/*filetype to big or none existing*/
-											strcpy( obj->presentation, obj->file->d_name );
+											strcpy( obj->presentation, obj->filename );
 											strcpy( obj->filetype, " " );
 											break;
 										}
@@ -145,7 +150,12 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 							if( ( len = readlink( path, link_target_path, sizeof(link_target_path) ) )!= -1 )
 								{
 									link_target_path[len] = '\0';
-									lstat( link_target_path, &linkbuf );
+
+									//cant read link without the workdirectory of the link
+									strcpy( rooted_link_path, wd );
+									strcat( rooted_link_path, link_target_path );
+
+									lstat( rooted_link_path, &linkbuf );
 
 									if( S_ISREG(linkbuf.st_mode) 
 									|| S_ISFIFO(linkbuf.st_mode)
@@ -160,12 +170,11 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 										}
 									else
 										{
-											//ERROR: coud not read link path properly
-											//strcpy( obj->filetype, "LinkER");
-											strcpy( obj->filetype, "<DIR L>");
+											systemlog( 1, "WARNING: coud not read link path properly" );
+											strcpy( obj->filetype, "LinkER");
 										}
 
-									strcpy( obj->presentation, obj->file->d_name );
+									strcpy( obj->presentation, obj->filename );
 									if( SHOWHIDDEN )
 										{
 											strcat( obj->presentation, " -> " );
@@ -175,31 +184,31 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 							else
 								{
 									strcpy( obj->filetype, "ERROR L\0");
-									strcpy( obj->presentation, obj->file->d_name );
+									strcpy( obj->presentation, obj->filename );
 								}
 						}
 
 					else if( S_ISFIFO(buf.st_mode) )
 						{
-							strcpy( obj->presentation, obj->file->d_name );
+							strcpy( obj->presentation, obj->filename );
 							strcpy( obj->filetype, "fifo\0");
 						}
 
 					else if( S_ISCHR(buf.st_mode) )
 						{
-							strcpy( obj->presentation, obj->file->d_name );
+							strcpy( obj->presentation, obj->filename );
 							strcpy( obj->filetype, "char\0");
 						}
 
 					else if( S_ISBLK(buf.st_mode) )
 						{	
-							strcpy( obj->presentation, obj->file->d_name );
+							strcpy( obj->presentation, obj->filename );
 							strcpy( obj->filetype, "block\0");
 						}
 
 					else
 						{
-							strcpy( obj->presentation, obj->file->d_name );
+							strcpy( obj->presentation, obj->filename );
 							strcpy( obj->filetype, "ERROR\0");
 						}
 
@@ -209,16 +218,16 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 					if( isoffiletype(obj, obj->number, "mp3") 
 					 || isoffiletype(obj, obj->number, "MP3") 
 					 || isoffiletype(obj, obj->number, "ogg")
-					 ||	isoffiletype(obj, obj->number, "OGG") 
+					 || isoffiletype(obj, obj->number, "OGG") 
 					 || isoffiletype(obj, obj->number, "flac"))
 						obj = getid3tags( obj, path );
 
 					//only add objects that should be shown
 					if( SHOWHIDDEN )
 						{	filelist = bubbeladd( filelist , obj );	}
-					else if( ( obj->file->d_name[0] == '.' && strlen(obj->file->d_name) == 1 ) 
-								|| ( obj->file->d_name[0] == '.' && obj->file->d_name[1] == '.' && strlen(obj->file->d_name) == 2 ) 
-								|| ( obj->file->d_name[0] != '.' ) )
+					else if( ( obj->filename[0] == '.' && strlen(obj->filename) == 1 ) 
+								|| ( obj->filename[0] == '.' && obj->filename[1] == '.' && strlen(obj->filename) == 2 ) 
+								|| ( obj->filename[0] != '.' ) )
 								{	filelist = bubbeladd( filelist , obj );	}
 					else
 						{	free( obj );	}
