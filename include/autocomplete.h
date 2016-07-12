@@ -8,7 +8,7 @@ this program is distributed under the terms of the GNU General Public License*/
 	#define _auocomplete_
 
 	void addslash( char st[], char cmd[] );
-	int find_and_add_dir( char st[], char cmd[], char dir[] );
+	int find_and_add_dir( char st[], char cmd[], char adir[], char pdir[] );
 	/*fp = file path*/
 	int find_and_add_fp( char st[], char cmd[], char fp[] );
 

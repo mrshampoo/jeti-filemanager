@@ -9,6 +9,7 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "window.h"
 #include "systemlog.h"
 #include <ncurses.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -247,7 +248,7 @@ int trowcmd( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin )
 
 		chdir( cw->wd );
 		
-		find_and_add_dir( cmd, cw->currentcmd[0], pwin->wd );
+		find_and_add_dir( cmd, cw->currentcmd[0], awin->wd, pwin->wd );
 		strcat( cmd ," > /dev/null 2>&1" );
 
 		//trow the command for eatch selected file
@@ -262,6 +263,13 @@ int trowcmd( cmdWindowtype *cw, Windowtype *awin, Windowtype *pwin )
 							
 					}
 				memset( tmpcmd, 0, sizeof(tmpcmd) );
+		}
+
+		//raise quit signal if :q (vi like quit)
+		if( strlen(cmd) == 18 && cmd[0] == 'q' )
+			{
+				raise( SIGTERM );
+				selections++;
 			}
 
 		//just a regular trow

@@ -345,7 +345,7 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 				systemlog( 95, awin->shortcuts->dir +d );
 				systemlog( 95, awin->wd );
 
-				find_and_add_dir( cmd, awin->shortcuts->dir +d, awin->wd );
+				find_and_add_dir( cmd, awin->shortcuts->dir +d, awin->wd, pwin->wd );
 				strcat( cmd ," > /dev/null 2>&1 &" );
 
 				for( x = 1; x <= printtotalnr( awin->filelist ); x++ )

@@ -34,7 +34,7 @@ void showhelpmenu()
 	}
 void print_version()
 	{
-		printf( "1.2.1\n" );
+		printf( "1.2.2\n" );
 		exit(0);
 	}
 

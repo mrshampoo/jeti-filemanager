@@ -68,6 +68,7 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 		int x = 0,
 			len = 1,
 			dotsize = 1; /*obs: not a bool*/
+		int link_loops = 0;
 
 		char path[SIZE_WORKDIREKTORY];
 		char link_target_path[SIZE_WORKDIREKTORY];
@@ -147,45 +148,61 @@ dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN )
 
 					else if( S_ISLNK(buf.st_mode) )
 						{//it is a link!
-							if( ( len = readlink( path, link_target_path, sizeof(link_target_path) ) )!= -1 )
+							strcpy( rooted_link_path, path );
+							do
 								{
-									link_target_path[len] = '\0';
-
-									//cant read link without the workdirectory of the link
-									strcpy( rooted_link_path, wd );
-									strcat( rooted_link_path, link_target_path );
-
-									lstat( rooted_link_path, &linkbuf );
-
-									if( S_ISREG(linkbuf.st_mode) 
-									|| S_ISFIFO(linkbuf.st_mode)
-									|| S_ISCHR(linkbuf.st_mode)
-									|| S_ISBLK(linkbuf.st_mode) )
+									if( ( len = readlink( rooted_link_path, link_target_path, sizeof(link_target_path) ) )!= -1 )
 										{
-											strcpy( obj->filetype, "link");
-										}
-									else if( S_ISDIR(linkbuf.st_mode) )
-										{
-											strcpy( obj->filetype, "<DIR L>");
+											link_target_path[len] = '\0';
+
+											if( link_loops == 0 )
+												{
+													//cant read link without the workdirectory of the link
+													strcpy( rooted_link_path, wd );
+												}
+												
+
+											strcat( rooted_link_path, link_target_path );
+
+											lstat( rooted_link_path, &linkbuf );
+
+											if( S_ISREG(linkbuf.st_mode) 
+											|| S_ISFIFO(linkbuf.st_mode)
+											|| S_ISCHR(linkbuf.st_mode)
+											|| S_ISBLK(linkbuf.st_mode) )
+												{
+													strcpy( obj->filetype, "link");
+													link_loops = 10;
+												}
+											else if( S_ISDIR(linkbuf.st_mode) )
+												{
+													strcpy( obj->filetype, "<DIR L>");
+													link_loops = 10;
+												}
+											else if( S_ISLNK(linkbuf.st_mode) )
+												{
+													link_loops++;
+												}
+											else
+												{
+													systemlog( 1, "WARNING: coud not read link path properly" );
+													strcpy( obj->filetype, "LinkER");
+													link_loops = 10;
+												}
+
+											strcpy( obj->presentation, obj->filename );
+											if( SHOWHIDDEN )
+												{
+													strcat( obj->presentation, " -> " );
+													strcat( obj->presentation, link_target_path );
+												}
 										}
 									else
 										{
-											systemlog( 1, "WARNING: coud not read link path properly" );
-											strcpy( obj->filetype, "LinkER");
+											strcpy( obj->filetype, "ERROR L\0");
+											strcpy( obj->presentation, obj->filename );
 										}
-
-									strcpy( obj->presentation, obj->filename );
-									if( SHOWHIDDEN )
-										{
-											strcat( obj->presentation, " -> " );
-											strcat( obj->presentation, link_target_path );
-										}
-								}
-							else
-								{
-									strcpy( obj->filetype, "ERROR L\0");
-									strcpy( obj->presentation, obj->filename );
-								}
+								} while( link_loops < 10 && link_loops > 0 );
 						}
 
 					else if( S_ISFIFO(buf.st_mode) )

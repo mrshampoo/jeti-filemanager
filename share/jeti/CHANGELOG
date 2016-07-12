@@ -1,8 +1,6 @@
-changes done from verison 1.2.0 to 1.2.1
+changes done from verison 1.2.1 to 1.2.2
 	changes that are a bit buggy are tabed in.
 
-	* bugfix, jeti can now read link paths properly!
-	* bugfix, jeti can now handle the content of void-packages/srcpkgs/ !
-	
-:D
+	* bugfix, jeti now reads thru multiple link layers, limit set to 10 to prevent infinitiv loops.
+	* you can now quit jeti by typing ":q", as in vi, that is, bring up command-window, typ q and hit enter.
 

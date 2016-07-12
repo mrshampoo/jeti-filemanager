@@ -43,7 +43,7 @@ void addslash( char st[], char cmd[] )
 				{	strcat( st, tmpcmd );	}
 	}
 
-int find_and_add_dir( char st[], char cmd[], char dir[] )
+int find_and_add_dir( char st[], char cmd[], char adir[], char pdir[] )
 	{
 		int at = 0;
 		int i = 0; //current char
@@ -59,9 +59,22 @@ int find_and_add_dir( char st[], char cmd[], char dir[] )
 			{
 				if( cmd[i] == '$' && cmd[i+1] == 'd' )
 					{
-						at = i;
-						strcat( tmpcmd, dir );
-						i += 4;
+						if( cmd[i+2 == 2] )
+							{
+								at = i;
+								strcat( tmpcmd, pdir );
+								i += 4;
+							}
+						else if( cmd[i+2] == 1 || cmd[i+2] == ' ' )
+							{
+								at = i;
+								strcat( tmpcmd, adir );
+								i += 4;
+							}
+						else
+							{
+								systemlog( 1, "ERROR: found $d but not separated from other shit" );
+							}
 						
 					}
 				else

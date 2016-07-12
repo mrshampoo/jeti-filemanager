@@ -58,7 +58,7 @@ int print_dialogwin( dialogwindowtype *dialogwin, Windowtype *awin, char destiwd
 
 				//if( !confirmed && (DW_REACTION & 8 ) )
 				//	{
-				//		strcat( question, " This requires su or sudo );
+				//		strcat( question, " This requires su or sudo" );
 				//	}
 
 				//question
