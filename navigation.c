@@ -82,6 +82,9 @@ int stepupp( Windowtype *win, soundeffectType *sounds )
 	{
 		systemlog( 3, "stepupp" );
 
+		if( !win->visible_marker )
+			win->visible_marker = 1;
+
 		if( win->marker[win->mlevel]-1 <= win->slide[win->mlevel] && win->slide[win->mlevel] > 0 )
 			{
 				win->marker[win->mlevel]--;
@@ -107,6 +110,9 @@ int stepdown( Windowtype *win, soundeffectType *sounds )
 	{
 		systemlog( 3, "stepdown" );
 
+		if( !win->visible_marker )
+			win->visible_marker = 1;
+
 		if( win->marker[win->mlevel] != printtotalnr( win->filelist ) && win->marker[win->mlevel]-1 < win->h + win->slide[win->mlevel] -4 )
 			{
 				//slide reached the bottom
@@ -127,11 +133,15 @@ int stepdown( Windowtype *win, soundeffectType *sounds )
 				//marker reatched bottom
 				return 0;
 			}
+
 	}
 
 int selectfile( Windowtype *win, soundeffectType *sounds )
 	{
 		systemlog( 3, "selectfile" );
+
+		if( !win->visible_marker )
+			win->visible_marker = 1;
 
 		win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
 
@@ -148,6 +158,7 @@ int selectfile( Windowtype *win, soundeffectType *sounds )
 			{
 				return 0;
 			}
+
 		playsound( sounds, 9 );
 		return 1;
 	}
@@ -156,7 +167,7 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 	{
 		int i = 0;
 		int repaint = 0;
-		int notexec = 0;
+		int notexec = -1;
 
 		char dubbledot[] = "..";
 		char tmpcmd[250];
@@ -233,7 +244,6 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 				//copy fileactions				
 				while( !isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) && fileaction->prev != NULL )
 					{ fileaction = fileaction->prev; }
-					strcpy( cmd, fileaction->Action );
 
 				//check executable or if no atribute was found
 				if( S_IEXEC & win->filelist->status && win->noexe == 0 )
@@ -241,11 +251,10 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 						strcpy( cmd, TERMINALNAME );
 						strcat( cmd, " -e " );
 					}
-				else if( !isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) )
+				else if( isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) )
 					{
-						memset( cmd, 0, sizeof(cmd));
-						cmd[0] = '\0';
-						notexec = 1;
+						strcpy( cmd, fileaction->Action );
+						notexec = 0;
 					}
 				else
 					{
@@ -268,10 +277,14 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 
 						//make silent and free
 						strcat( cmd, " > /dev/null 2>&1 &" );
-						win->marker[win->mlevel] = -1;
+						win->visible_marker = 0;
 
 						if( notexec )
-							playsound( sounds, 0 );
+							{
+								//play nothing
+							}
+						else if( notexec == 0 )
+							playsound( sounds, 16 );
 						else
 							playsound( sounds, 4 );
 

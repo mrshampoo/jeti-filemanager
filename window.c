@@ -37,7 +37,8 @@ Windowtype *newwindow( int h, int w, int y, int x )
 				win->filelist = getEntrys( win->dir, win->wd, win->filelist, win->showhidden );
 
 			win->mlevel = 0;	
-			win->marker[win->mlevel] = -1;
+			win->marker[win->mlevel] = 0;
+			win->visible_marker = 0;
 			win->slide[win->mlevel] = 0;
 			win->hidden = 0;
 			win->noexe = 0;
@@ -54,13 +55,13 @@ Windowtype *redefinewindow( Windowtype *win, int h, int w, int y, int x )
 		clearwindow( win );
 		delwin( win->win );
 		clearEnvironment_tabs( win->tab );
-    win->win = newwin( h, w, y, x);
+		win->win = newwin( h, w, y, x);
 		win->h = h;
 		win->w = w;
 		win->x = x;
 		win->y = y;
 		win->hidden = 0;
-    win = init_win_colors( win );
+		win = init_win_colors( win );
 		win->tab = init_wintabs_environment( win->tab, win->w );
 
 		systemlog( 3, "window redefined" );
@@ -83,12 +84,15 @@ int loadnewdir( Windowtype *win, char wd[] )
         				win->wd[i] = wd[i];
         				i++;
       				}
-      			win->wd[i] = '\0';
+				win->wd[i] = '\0';
 					systemlog( 5, "enterd new pathname successfuly." );
 
 				win->dir = opendir( wd );
 					systemlog( 5, "dir was able to open successfuly." );
 				win->filelist = getEntrys( win->dir, wd, win->filelist, win->showhidden );
+
+				if( !strncmp( TERMINALNAME, "st", 2 ) )
+					chdir( wd );
 
 				systemlog( 3, "new dir loaded" );
 			}
@@ -248,12 +252,12 @@ void printwindow( Windowtype *win )
 
 						//make line where marker is, white.
 						systemlog( 6,"make line where marker is, white\n" );
-						if( y+win->slide[win->mlevel] == win->marker[win->mlevel] )
-            				{
-               					filecolor = 1;
-                				wattron( win->win, A_REVERSE  );
-              				}
-            			else
+						if( win->visible_marker && y+win->slide[win->mlevel] == win->marker[win->mlevel] )
+			 				{
+								filecolor = 1;
+								wattron( win->win, A_REVERSE  );
+							}
+						else
 							{ 
 								wattroff( win->win, A_REVERSE );
 							}

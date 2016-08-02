@@ -1,6 +1,8 @@
-changes done from verison 1.2.1 to 1.2.2
+changes done from verison 1.2.2 to 1.2.3
 	changes that are a bit buggy are tabed in.
 
-	* bugfix, jeti now reads thru multiple link layers, limit set to 10 to prevent infinitiv loops.
-	* you can now quit jeti by typing ":q", as in vi, that is, bring up command-window, typ q and hit enter.
-
+	* bugfix, sound should now work once again!
+	* added, posibility to have sound action on startup, quit and fileaction.
+	* bugfix, prevented jeti to enter a eternal loop that used up the cpu.
+	* if using succless terminal, and it is deklared in the rc, jeti changes the workdir to the latest changed, in case of bringin up a new terminal from jeti, then the workdir of that terminal will be that of jeti. note this will not cynk when opening a terminal from the other window (only the latest)
+	* jeti should now remember what file he last enterd

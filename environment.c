@@ -1015,7 +1015,7 @@ soundeffectType *init_soundeffects()
 		//sounds = NULL;
 
 		char buff[250];
-    	FILE *fp;
+		FILE *fp;
 
 		int l = 0; //line reading
 		int i = 0; //instruction reading
@@ -1029,78 +1029,89 @@ soundeffectType *init_soundeffects()
 		sounds->action = -1;
 
 		if( !access( CONFIGNAME, R_OK ) )
-            {
+			{
 				fp = fopen( CONFIGNAME, "rb");
-			while( (buff[l] = fgetc(fp)) != EOF )
-      			{
-        			if( buff[l] == '\n' )
-         	 			{
-							//remove blankspace in the beginning
-							while( buff[0] == ' ' )
-              					{ strcpy( buff, buff+1 ); }
+				while( (buff[l] = fgetc(fp)) != EOF )
+					{
+						if( buff[l] == '\n' )
+							{
+								//remove blankspace in the beginning
+								while( buff[0] == ' ' )
+								{ strcpy( buff, buff+1 ); }
 
-							//read instructions
-							if( !strncmp( buff, "sound.", 6 ) )
-              					{ i+=6;
-									if( !strncmp( buff+i, "enter.", 6 ) )
-              							{ i+=6;
-											if( !strncmp( buff+i, "doubledot: ", 10 ) )
-              									{ i+=10; sounds->action = 1; }
-											else if( !strncmp( buff+i, "singledot: ", 11 ) )
-                      							{ i+=11; sounds->action = 2;}
-											else if( !strncmp( buff+i, "kat: ", 5 ) )
-												{ i+=5; sounds->action = 3; }
-											else if( !strncmp( buff+i, "executeble: ", 12 ) )
-                      							{ i+=12; sounds->action = 4; }
-											else if( !strncmp( buff+i, "scrollupp: ", 11 ) )
-                                                { i+=11; sounds->action = 5; }
-											else if( !strncmp( buff+i, "scrolldown: ", 12 ) )
-                                                { i+=12; sounds->action = 6; }
-											else if( !strncmp( buff+i, "stepupp: ", 9 ) )
-                                                { i+=9; sounds->action = 7; }
-											else if( !strncmp( buff+i, "stepdown: ", 10 ) )
-                                                { i+=10; sounds->action = 8; }
-											else if( !strncmp( buff+i, "selectfile: ", 12 ) )
-                                                { i+=12; sounds->action = 9; }
-											else if( !strncmp( buff+i, "copyfiles: ", 11 ) )
-                                                { i+=11; sounds->action = 10; }
-											else if( !strncmp( buff+i, "movefiles: ", 11 ) )
-                                                { i+=11; sounds->action = 11; }
-											else if( !strncmp( buff+i, "removefiles: ", 13 ) )
-                                                { i+=13; sounds->action = 12; }
-											else if( !strncmp( buff+i, "shortcut: ", 10 ) )
-                                                { i+=10; sounds->action = 13; }
+								//read instructions
+								if( !strncmp( buff, "sound.", 6 ) )
+									{ i+=6;
+										if( !strncmp( buff+i, "enter.", 6 ) )
+											{ i+=6;
+												if( !strncmp( buff+i, "doubledot: ", 10 ) )
+													{ i+=10; sounds->action = 1; }
+												else if( !strncmp( buff+i, "singledot: ", 11 ) )
+													{ i+=11; sounds->action = 2;}
+												else if( !strncmp( buff+i, "kat: ", 5 ) )
+													{ i+=5; sounds->action = 3; }
+												else if( !strncmp( buff+i, "executeble: ", 12 ) )
+													{ i+=12; sounds->action = 4; }
+												else if( !strncmp( buff+i, "scrollupp: ", 11 ) )
+													{ i+=11; sounds->action = 5; }
+												else if( !strncmp( buff+i, "scrolldown: ", 12 ) )
+													{ i+=12; sounds->action = 6; }
+												else if( !strncmp( buff+i, "stepupp: ", 9 ) )
+													{ i+=9; sounds->action = 7; }
+												else if( !strncmp( buff+i, "stepdown: ", 10 ) )
+													{ i+=10; sounds->action = 8; }
+												else if( !strncmp( buff+i, "selectfile: ", 12 ) )
+													{ i+=12; sounds->action = 9; }
+												else if( !strncmp( buff+i, "copyfiles: ", 11 ) )
+													{ i+=11; sounds->action = 10; }
+												else if( !strncmp( buff+i, "movefiles: ", 11 ) )
+													{ i+=11; sounds->action = 11; }
+												else if( !strncmp( buff+i, "removefiles: ", 13 ) )
+													{ i+=13; sounds->action = 12; }
+												else if( !strncmp( buff+i, "shortcut: ", 10 ) )
+													{ i+=10; sounds->action = 13; }
+												else if( !strncmp( buff+i, "startup: ", 9 ) )
+													{ i+=9; sounds->action = 14; }
+												else if( !strncmp( buff+i, "quit: ", 6 ) )
+													{ i+=6; sounds->action = 15; }
+												else if( !strncmp( buff+i, "fileaction: ", 12 ) )
+													{ i+=12; sounds->action = 16; }
+
 												
-											while( buff[i] != '\"' )
-												i++;
-										
-											//get values
-											while( buff[i+v] != '\"' )
-												{
-													sounds->sound[v-1] = buff[i+v];
-													v++;
-												}
-										}
-              					}
+												while( buff[i] != '\"' )
+													i++;
 
-							//prepare for next sound
-							sounds->next = malloc( sizeof(soundeffectType) );
-							sounds->next->next = NULL;
-							sounds->next->prev = sounds;
-							sounds = sounds->next;
-							sounds->action = -1;
+												//get values
+												while( buff[i+v] != '\"' )
+													{
+														sounds->sound[v-1] = buff[i+v];
+														v++;
+													}
+											}
+              					
 
-							//rewind readers
-							v = 1;
-                            i = 0;
-                            l = 0;
-						}
-        			else 
-						{
-							l++;
-						}
-      			}
-    			fclose( fp );
+										//prepare for next sound
+										sounds->next = malloc( sizeof(soundeffectType) );
+										sounds->next->next = NULL;
+										sounds->next->prev = sounds;
+										sounds = sounds->next;
+										sounds->action = -1;
+									}
+
+								//rewind readers
+								v = 1;
+								i = 0;
+								l = 0;
+
+							}
+						else 
+							{
+								l++;
+							}
+					}
+
+				fclose( fp );
+
 			}
 		else
 			{
@@ -1109,8 +1120,9 @@ soundeffectType *init_soundeffects()
 			}
 
 		//remove unused mallocation
-		if( sounds->prev != NULL )
+		while( sounds->prev != NULL && sounds->action == -1 )
 			{
+				systemlog( 4, "removed last unused sound mallocation: " );
 		 		sounds = sounds->prev;
 				free( sounds->next );
 				sounds->next = NULL;

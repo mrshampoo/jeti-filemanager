@@ -99,6 +99,7 @@ this program is distributed under the terms of the GNU General Public License*/
 		int noexe;					//do not execute executables, use fileaction on them instead
             int mlevel;					//marker level, keeps track of wish directory the marker height was stored
             int marker[SIZE_HISTORY];
+	    int visible_marker;
             int slide[SIZE_HISTORY];
             int color[NUMBEROFCOLORS];
             char wd[SIZE_WORKDIREKTORY];

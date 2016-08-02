@@ -5,6 +5,7 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "projecttypes.h"
 #include "soundeffects.h"
 #include "handleflags.h"
+#include "systemlog.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -32,7 +33,7 @@ void playsound( soundeffectType *sounds, int action )
 				if( sounds->action != action )
 					sounds = getsoundaction( sounds, action );
 
-				if( sounds->action != -1 )
+				if( sounds->action == action && sounds->action != -1 )
 					{
 						strcpy( cmd, "aplay " );
 						strcat( cmd, sounds->sound );

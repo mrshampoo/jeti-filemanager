@@ -15,6 +15,7 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "directorys.h"
 #include "command-window.h"
 #include "handleflags.h"
+#include "soundeffects.h"
 
 #define _globals_
 
@@ -59,6 +60,7 @@ int main( int argc, char *argv[] )
 		
 		void catchexit( int dummy )
 			{
+				playsound( sounds, 15 );
 				systemlog( 2, "--= catched exit =------------->\n" );
 				repaint = -1;
 				EXIT = 1;
@@ -115,6 +117,8 @@ int main( int argc, char *argv[] )
 
 				printwindow( win_one );
 				printwindow( win_two );
+
+				playsound( sounds, 14 );
 	 			
 				while( !EXIT )
 					{	
@@ -164,7 +168,7 @@ int main( int argc, char *argv[] )
 																		else
 																			{
 																				activwin = win_two;
-                                              									passivwin = win_one;
+          																			passivwin = win_one;
 																			}
 																		keypad( activwin->win, TRUE );
 																		press_action_one = activwin->y + event.y + activwin->slide[activwin->mlevel];
@@ -193,11 +197,10 @@ int main( int argc, char *argv[] )
 																		press_action_shortcuts = event.y;	
 																	}
 																				
-																if( press_action_one == activwin->marker[activwin->mlevel] )
+																if( activwin->visible_marker && press_action_one == activwin->marker[activwin->mlevel] )
 																	{/*left_doublepressed*/
 																		press_action_one = -press_action_one;
 																	}
-
 																press_action_two = 0;
 															}
 														else if( event.bstate & BUTTON1_RELEASED )
@@ -205,6 +208,8 @@ int main( int argc, char *argv[] )
 																if( insidewindow( activwin, event.y, event.x ) && press_action_one > 0 && press_action_one <= printtotalnr( activwin->filelist ) )
 																	{/*left_singlereleased*/
 																		activwin->marker[activwin->mlevel] = press_action_one;
+																		if( !activwin->visible_marker )
+																			activwin->visible_marker = 1;
 																		repaint = 1;
 																	}
 																else if( insidewindow( passivwin, event.y, event.x ) && press_action_one != 0 )
@@ -245,7 +250,7 @@ int main( int argc, char *argv[] )
 
 																press_action_two = activwin->y + event.y + activwin->slide[activwin->mlevel];
 
-																if( press_action_two == activwin->marker[activwin->mlevel] )
+																if( activwin->visible_marker && press_action_two == activwin->marker[activwin->mlevel] )
 																	{/*right_doublepressed*/
 																		press_action_two = -press_action_two;
 																	}
@@ -257,6 +262,8 @@ int main( int argc, char *argv[] )
 																if( insidewindow( activwin, event.y, event.x ) && press_action_two > 0 && press_action_two <= printtotalnr( activwin->filelist ))
 																	{/*right_singlereleased*/
 																		activwin->marker[activwin->mlevel] = press_action_two;
+																		if( !activwin->visible_marker )
+																			activwin->visible_marker = 1;
 																		repaint = selectfile( activwin, sounds );
 																	}
 																else if( insidewindow( passivwin, event.y, event.x ) && press_action_two != 0 )
@@ -295,7 +302,7 @@ int main( int argc, char *argv[] )
 												break;
 
 								//Esc
-								case 0x1B: 		activwin->marker[activwin->mlevel] = -1;
+								case 0x1B: 		activwin->marker[activwin->mlevel] = 0;
 												activwin->slide[activwin->mlevel] = 0;
 												repaint = 1;
 												break;
@@ -320,9 +327,12 @@ int main( int argc, char *argv[] )
 												if( strlen( activwin->wd ) == strlen( passivwin->wd )&& !strncmp( activwin->wd, passivwin->wd, strlen( passivwin->wd ) ) )
 													loadnewdir( passivwin, passivwin->wd );
 												break;
-																
-								default: 
+	
+								default:		systemlog( 4, "catched \"no key\", resizeing to prevent cpu upload" );
+											//dont know why this works, but it does.
+											catchresize(0); 
 												break;
+											
 							}
 						
 						if( repaint && !EXIT )

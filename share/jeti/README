@@ -205,6 +205,9 @@ the jeti.rc file:
 				movefiles
 				removefiles
 				shortcut
+				startup
+				quit
+				fileaction
 flags:
 	--help or -h:
 		shows helpmenu.
