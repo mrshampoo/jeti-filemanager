@@ -13,11 +13,13 @@ basic usage:
 		or simply push the 'X' button in the corner of your terminal ( Jeti should be able to handle this ;) )
 
 	navigation:
-		*Use right and left arrows to switch between windows or simply click in the window you want to use.
-		*Use up and down arrows to navigate thru files, or simply just click the file you want to handle.
-		*Press 'Enter' or double left click a catalog you want to enter, or file you want jeti to take action on (see the jeti,rc file: type actions, below.)
-		*use scroll to scroll the page up and down.
-		*Push 'Esc' if you want to get on top of page.
+		* Use right and left arrows to switch between windows or simply click in the window you want to use.
+		* pushing left arrow in left window will force you back one folder, pushing rightarrow in right window will do the same.
+		* Use up and down arrows to navigate thru files, or simply just click the file you want to handle.
+		* Press 'Enter' or double left click a catalog you want to enter, or file you want jeti to take action on (see the jeti,rc file: type actions, below.)
+		* use scroll to scroll the page up and down.
+		* Push 'Esc', if you want to unhiglight the marker
+		* Push 'Esc' twise, if you want to get on top of page.
 
 	selecting files:
 		*navigate to the file you want to select, and hit 'space'.
@@ -25,26 +27,27 @@ basic usage:
 
 	copying files:
 		select the files you want to copy, navigate the other window to the directory you want the files to be copied to, 
-			*and hit 'c'
-			*or push down the left mouse button in the window your files are located (don't let go yet.) drag the mouse to the destination window, and let go. 
+			* and hit 'c'
+			* or push down the left mouse button in the window your files are located (don't let go yet.) drag the mouse to the destination window, and let go. 
 
 	moving files:
 		select the files you want to move, navigate the other window to the directory you want the files to be moved to, 
-			*and hit 'm'
-			*or push down the right mouse button in the window your files are located (don't let go yet.) drag the mouse to the destination window, and let go.
+			* and hit 'm'
+			* or push down the right mouse button in the window your files are located (don't let go yet.) drag the mouse to the destination window, and let go.
 		
 	deleting files:
 		select the files you want to remove,
-			*and hit 'DELETE'
+			* and hit 'DELETE'
 
 	the command window:
 		opening and closing:
 				*open by hitting ':'
 				*and closing by hitting 'Esc'
+				*Enter will also close, but execute the current command on the way out.
 
 		basic usage: 
 			almost everything written in this will be past down to your shell (bash or sh or what ever. This is done tru a system() call)
-			*simply type a command and hit 'Enter'.
+			* simply type a command and hit 'Enter'.
 			* navigate thru history of commands with up and down arrows.
 			example: making a directory:
 				open thru hitting ':'
@@ -58,23 +61,24 @@ basic usage:
 					Example: showing selected pictures in a slide show.
 						"feh -F $f; sleep 3s"
 
-			directory variable "$d":
-				$d is the destination directory. It takes its path from the passive window. (It is the same path shown in the command widows bottom)
+			directory variable "$d1 and $d2":
+				$d1 is the workdirectory of the current window. a '$d' without the number will result in $d1
+				$d2 is the destination directory. It takes its path from the passive window. (It is the same path shown in the command widows bottom)
 				The command will be executed once fore every file selected.
 
-the jeti.rc file:
+the jeti.rc files:
 	install:
-		"mv ./share/jeti/jeti.rc ~/.jeti.rc"
-		or "mv share/jeti/jeti.rc $HOME/.jeti.rc"
-		or "mv share/jeti/jeti.rc $XDG_CONFIG_HOME/"
-		or "mv share/jeti/jeti.rc $XDG_DATA_DIRS/jeti/"
+		"cd $XDG_CONFIG_HOME ; >jeti.rc"
+		or "cd $XDG_CONFIG_HOME ; mkdir jeti.d ; cd jeti.d ; >whatever.rc ; chmod +x whatever.rc"
+		or "cd ~ ; > .jeti.rc"
 
-	general:
+	misc:
 		terminal.name: <terminal>
 			for executing of scripts and other binarys.
 
-		logfile.path: <path>
-			a directory where the logfile will be stored when using -l, if non set it will put it in your home
+		logfile.path: <path> <priority int>
+			a directory where the logfile will be stored when using -l, if non set it will put it in your current directory.
+			Note place this option in the top of your rc, if you want the full log output, or ells it will miss printing stuff untill this is called.
 
 		dialogwindow.reactions: <int>
 			if this is set, jeti will ask for password or if you are shure
@@ -83,8 +87,8 @@ the jeti.rc file:
 			2 activate dialog window on all (on every thing)
 			4 when no access, just put sudo infront (nonpassword sudo)
 			8 ask for password (su -c)
-			16 star password
-			32 dont show password at all
+			16 star password typing
+			32 dont show password typing at all
 
 			example: dialogwindow.reactions: 25
 			this will ask for root password when no write access and star it when writing
@@ -99,11 +103,11 @@ the jeti.rc file:
 			"/" : start at rot, (default)
 
 	tabs:
-		window.tab.left: <tabtype>
+		window.tab.left: <tabtype> <optional predefined lenght>
 			
-		window.tab.right: <tabtype>
-			note: the first ".right" will be put furthest to the right.
-			And the second to the left of the first one.
+		window.tab.right: <tabtype> <optional predefined lenght>
+
+		window.tab.center: <tabtype> <optional predefined lenght>
 
 		Available <tabtype> are:
 			selected :
@@ -145,6 +149,12 @@ the jeti.rc file:
 					fishy files
 				selected :
 					selected files
+				highlight :
+					activated stuff, for example witch window that is active
+				borders :
+					the ncurses box's, the frames
+				bordertext :
+					text that is on the border, for example the workdirectory
 				default :
 					all other files
 
@@ -158,6 +168,7 @@ the jeti.rc file:
 				5 : purple
 				6 : turquoise 
 				7 : white or bright gray
+				and apparently so on and so on, depending on what your terminal can handle
 
 	type actions:
 		file.type: "<command>" <filetype>,<filetype>..,<filetype>
@@ -182,6 +193,7 @@ the jeti.rc file:
 					turn off sound effects.
 				$passiv :
 					teleports you to the same directory as the passive window.
+					note, the same thing will hapen if you click on the workdirectory.
 				$home :
 					teleports you to the home directory of the current user.
 				$exec <command>:
@@ -236,7 +248,7 @@ flags:
 		
 about:
 	author: Harri Leino
-	when: 2016
+	when: 2016-2017
 	why: 
 		4 reasons:
 			1. I have always wanted one of these
