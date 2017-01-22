@@ -29,12 +29,12 @@ void systemlog( int priority, char logmessage[] )
 		char file_path_and_name[256];
 		FILE *file;
 
-		if( FILEPATH_LOG[0] != '\0' && ( priority <= show_logprioritys() || ( priority -90 > 0 && priority -90 <= show_logprioritys() ) ) )
+		if( FILEPATH_LOG[0] != '\0' && ( priority <= LOGPRIO || ( priority -90 > 0 && priority -90 <= LOGPRIO ) ) )
 			{
 						strcpy(completmessage, " ");
 						strcpy( file_path_and_name, FILEPATH_LOG );
 						if( FILEPATH_LOG[strlen(FILEPATH_LOG)] != '/' )
-						strcat( file_path_and_name, "/" );
+							strcat( file_path_and_name, "/" );
 						strcat( file_path_and_name, "jeti.log" );
 
 						if( _first_time_logging_ )
@@ -73,7 +73,7 @@ void systemlog( int priority, char logmessage[] )
 
 				printf( logmessage );
 
-				if( logmessage[strlen(logmessage)-1] != '\n' )
+				if( logmessage[strlen(logmessage)-1] != '\n')
 					printf( "\n" );
 				
 				last_was_newline = 1;

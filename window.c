@@ -14,11 +14,40 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "systemlog.h"
 #include "projecttypes.h"
 
+static int colors_inited = 0;
+
+void init_colors( Windowtype *win )
+	{
+		systemlog( 2, "init_colors" );
+
+		if( !colors_inited )
+			{
+				start_color();
+				assume_default_colors( -1, -1 );
+			}
+
+		init_pair( 1, win->color[0], win->color[9] );
+		init_pair( 2, win->color[1], win->color[9] ); //executebles
+		init_pair( 3, win->color[2], win->color[9] ); //katalogs
+		init_pair( 4, win->color[3], win->color[9] ); //links 
+		init_pair( 5, win->color[4], win->color[9] ); //fifo
+		init_pair( 6, win->color[5], win->color[9] ); //char
+		init_pair( 7, win->color[6], win->color[9] ); //block 
+		init_pair( 8, win->color[7], win->color[9] ); //error 
+		init_pair( 9, win->color[8], win->color[9] ); //selected
+		init_pair( 10, win->color[10], win->color[9] ); //highlighted
+		init_pair( 11, win->color[11], win->color[9] ); //borders
+		init_pair( 12, win->color[12], win->color[9] ); //border_text
+
+		systemlog( 92, "\t[DONE]" );
+	}
+
 Windowtype *newwindow( int h, int w, int y, int x )
 	{
 		Windowtype *win;
+		int i = 0;
 		
-		systemlog( 2, "creating new window..." );
+		systemlog( 2, "newwindow" );
 
 		win = malloc(sizeof(Windowtype));
 
@@ -27,14 +56,17 @@ Windowtype *newwindow( int h, int w, int y, int x )
 				win->w = w;
 				win->x = x;
 				win->y = y;
+				win->tab = NULL;
+				win->shortcuts = NULL;
+				win->filelist = NULL;
+				win->orientation_shortcuts = -1;
+				win->orientation_workdir = -1;
+				win->orientation_filelist = -1;
+				win->type_workdir = -1;
+				win->show_hidden_files = -1;
+				win->wd[0] = '\0';
 
-			win = init_win_colors( win );
-			win->tab = init_wintabs_environment( win->tab, win->w );
-			win = init_workdir( win );
-			win->shortcuts = init_shortcuts();
-
-			win->dir = opendir( win->wd );
-				win->filelist = getEntrys( win->dir, win->wd, win->filelist, win->showhidden );
+			win->dir = NULL;
 
 			win->mlevel = 0;	
 			win->marker[win->mlevel] = 0;
@@ -43,389 +75,696 @@ Windowtype *newwindow( int h, int w, int y, int x )
 			win->hidden = 0;
 			win->noexe = 0;
 
-		systemlog( 2, "window created");
+			for( i= 0; i <= NUMBEROFCOLORS; i++ )
+				{
+					win->color[i] = -2;
+				}
+
+			win->type_workdir = -1;
+			win->orientation_workdir = -1;
+			win->orientation_filelist = -1;
+			win->orientation_shortcuts = -1;
+
+		systemlog( 92, "\t[DONE]");
 		return win;
 	}
 
 Windowtype *redefinewindow( Windowtype *win, int h, int w, int y, int x )
 	{
-		systemlog( 3, "redefining window.." );
+		systemlog( 3, "redefining window" );
 
 		win->hidden = 1;
 		clearwindow( win );
 		delwin( win->win );
-		clearEnvironment_tabs( win->tab );
 		win->win = newwin( h, w, y, x);
 		win->h = h;
 		win->w = w;
 		win->x = x;
 		win->y = y;
 		win->hidden = 0;
-		win = init_win_colors( win );
-		win->tab = init_wintabs_environment( win->tab, win->w );
 
-		systemlog( 3, "window redefined" );
+		put_start_totablist( win->tab, w -2 );
+
+		systemlog( 93, "\t[DONE]" );
 		return win;
 	}
 
 int loadnewdir( Windowtype *win, char wd[] )
 	{
-		int success = 1;
-		int i = 0;
+		int success = 0;
 
 		if( !access(wd, R_OK) )
 			{
-				systemlog( 3, "loading new dir.." );
+				systemlog( 3, "loadnewdir" );
 
-				closedir( win->dir );
+				//close dir if alredy open
+				if( win->dir )
+					closedir( win->dir );
 
-				while( i != strlen(wd) )
-      				{
-        				win->wd[i] = wd[i];
-        				i++;
-      				}
-				win->wd[i] = '\0';
-					systemlog( 5, "enterd new pathname successfuly." );
+				//copy workdir
+				if( strncmp( win->wd_history, wd, strlen( wd ) ) )
+					{
+						strcpy( win->wd_history, wd );
+						success |= 2;
+					}
+				strcpy( win->wd, wd );
 
+				//get files
 				win->dir = opendir( wd );
-					systemlog( 5, "dir was able to open successfuly." );
-				win->filelist = getEntrys( win->dir, wd, win->filelist, win->showhidden );
+					rget_filelist( win->dir, win->wd, &win->filelist, win->show_hidden_files );
 
+				//if succlessterminal also change the real dir
 				if( !strncmp( TERMINALNAME, "st", 2 ) )
 					chdir( wd );
 
-				systemlog( 3, "new dir loaded" );
+				success |= 1;
 			}
 		else
 			{
-				success = 0;
+				success = -1;
 				systemlog( 1, "ERROR: loadnewdir: no read access:" );
 				systemlog( 91, wd );
 			}
 
-		systemlog( 3, "new dir loaded successfuly" );
-		systemlog( 93, win->wd );
+		if( success > 0 )
+			{
+				systemlog( 93, "\t[DONE]");
+				systemlog( 94, "("); systemlog( 94, win->wd );systemlog( 94, ")");
+			}
+		else
+			{
+				systemlog( 93, "\t[FAILD]" );
+				systemlog( 93, "("); systemlog( 93, win->wd ); systemlog( 93, ")");
+			}
+
 		return success;
 	}
 
-int filesize_length( int fsize )
+int filesize( int fsize )
 	{
-		int size = 1;
+		int size = 0;
+		int kilo = 0;
+		char atribute;
+		char string[4];
 
-		systemlog( 4, "enterd fsize");
+		systemlog( 4, "filesize");
 
-			while( fsize > 1000 )
+			size = fsize;
+
+			while( size >= 1000 )
 				{
-					fsize /= 1000;
-
-					if( size == 1 )
-						size = 2;
+					size /= 1000;
+					kilo++;
+				}
+			switch( kilo )
+				{
+					case 1: atribute = 'k'; break;
+					case 2: atribute = 'M'; break;
+					case 3: atribute = 'G'; break;
+					case 4: atribute = 'T'; break;
+					case 5: atribute = 'Y'; break;
+					default: atribute = ' '; break;
 				}
 
-			while( fsize > 10 )
-				{
-					fsize/=10;
-					size++;
-				}
+			if( 499 < ((fsize - size*kilo) / ( kilo -1 )) )
+				size++;
 
-		return size+1;
+			sprintf( string, "%i%c", size, atribute );
+
+		return size;
 	}
 
-static int colors_not_started = 1;
-
-void printwindow( Windowtype *win )
+int print_win_workdirectory( Windowtype *win, int orientation, int highlight, int procent_spaceing )
 	{
-		int x = 0,
-				y = 0,
-				filecolor = 0,
-				listsize,
-				endofname = 0;
+		//orientation =>
+		// xx00 = random
+		// xx01 = right
+		// xx10 = left
+		// xx11 = center
+		// 00xx = top
+		// 01xx = right
+		// 10xx = left
+		// 11xx = bottom
 
-		systemlog( 2, "trying to prit window..." );
+		int success = 0;
 
-		//only start thees onse, else there will be a paint leakage
-		if( colors_not_started )
+		char workdir[SIZE_WORKDIREKTORY];
+		int x = 0;
+		int y = 0;
+		int start = 0;
+		int c = 0;
+		int spaceing = 0;
+
+		//calculate procentage
+		if( (orientation & 8) ^ (orientation & 4) )
 			{
-				start_color();
-				assume_default_colors( -1, -1 );
-				colors_not_started = 0;
+				spaceing = procent_spaceing * win->h / 100;
+			}
+		else
+			{
+				spaceing = procent_spaceing * win->w / 100;
 			}
 
-		init_pair(1, win->color[0], win->color[9] );
-		init_pair(2, win->color[1], win->color[9] ); /*executebles*/
- 		init_pair(3, win->color[2], win->color[9] ); /*katalogs*/
-		init_pair(4, win->color[3], win->color[9] ); /*links*/
-		init_pair(5, win->color[4], win->color[9] ); /*fifo*/
-    	init_pair(6, win->color[5], win->color[9] ); /*char*/
-    	init_pair(7, win->color[6], win->color[9] ); /*block*/
-    	init_pair(8, win->color[7], win->color[9] ); /*error*/
-		init_pair(9, win->color[8], win->color[9] ); /*selected*/
-
-		if( !win->hidden )
+		//representation form
+		if( win->type_workdir & 1 )
 			{
-
-				/*get number of printeble objects*/
-				systemlog( 4,"get number of printeble objects" );
-				if( win->h-1 > (getlast( win->filelist))->number + 1 )
+				strcpy( workdir, win->wd );
+			}
+		else
+			{
+				//get leaf dir
+				if ( ( c = strlen( win->wd ) -1) > 0 )
 					{
-						listsize = (getlast( win->filelist ))->number + 1;
+						if( win->wd[c] == '/' )
+							c--;
+
+						while( win->wd[c] != '/' )
+							c--;
+
+						strcpy( workdir, win->wd + c +1 );
 					}
 				else
 					{
-						listsize = win->h-1;
+						workdir[0] = '/'; workdir[1] = '\0';
+					}
+				c = 0;
+			}
+
+		if( highlight )
+			wattron( win->win, COLOR_PAIR( 10 ) );
+		else
+			wattron( win->win, COLOR_PAIR( 12 ) );
+
+		if( (orientation & 3) == 3 )
+			{//center centration
+				if( orientation & 12 || orientation < 4 )
+					start = win->w/2 - strlen( workdir )/2;
+				else
+					start = win->h/2 - strlen( workdir )/2;
+			}
+		else if( orientation & 2 )
+			{//left centration
+				start = 3 + spaceing;
+			}
+		else if( orientation & 1 )
+			{//right centration
+				if( orientation & 12 || orientation < 4 )
+					start = win->w -3 -strlen( workdir ) -spaceing;
+				else
+					start = win->h -3 -strlen( workdir ) -spaceing;
+			}
+		else
+			{
+				systemlog( 1, "ERROR: print_win_workdirectory: none text centration!" );
+				success = -1;
+			}
+
+		while( c <= strlen( workdir ) )
+			{
+				if( ( orientation & 12 ) == 12 )
+					{//botem border
+						y = win->h -1;
+						x = start + c;
+					}
+				else if( orientation & 8 )
+					{//left border
+						x = 0;
+						y = start + c;
+					}
+				else if( orientation & 4 )
+					{//right border
+						x = win->w -1;
+						y = start + c;
+					}
+				else
+					{//top border
+						y = 0;
+						x = start + c;
 					}
 
-				/* how far down in the filelist are we?*/
-				systemlog( 4,"how far down in the filelist are we?" );
-				if( ((getlast(win->filelist))->number - win->slide[win->mlevel] < win->h -2) && win->slide[win->mlevel] != 0 )
+				if( orientation & 12 || orientation < 4 )
 					{
-						if( (getlast(win->filelist))->number +2 - win->h < 0 )
-							win->slide[win->mlevel] = 0;
-						else
-							win->slide[win->mlevel] = (getlast(win->filelist))->number +2 -win->h;
-					}
-
-				/* window decorations */
-				systemlog( 4,"window decorations" );
-				wattron( win->win, COLOR_PAIR(1) );
-				wattroff( win->win, A_REVERSE );
-				clear();
-				box( win->win, 0, 0 );
-				for( x = 0; win->wd[x] != '\0' && x+2 < win->w -2; x++ )
-					{
-						mvwprintw( win->win, 0,x+2,"%c", win->wd[x] );
-					}
-
-				//rewind shourtcuts
-				systemlog( 4,"rewind shourtcuts" );
-				while( win->shortcuts->prev != NULL )
-					win->shortcuts = win->shortcuts->prev;
-				//Decorate with shortcuts
-				systemlog( 4,"Decorate with shortcuts" );
-				for( y = 1; ( y < win->h-1) && ( win->shortcuts->dir[0] != '_' ); y++ )
-					{
-						if( win->shortcuts->next != NULL )
+						if( x >= 1 && x < win->w -1  )
 							{
-								systemlog( 5,"printing shourtcuts," );
-								mvwprintw( win->win, y, 0, "%c", win->shortcuts->label );
-								win->shortcuts = win->shortcuts->next;
-							}
-						else if( win->shortcuts->next == NULL )
-							{
-								systemlog( 5,"printing last shourtcut." );
-								mvwprintw( win->win, y, 0, "%c", win->shortcuts->label );
-								break;
+								mvwprintw( win->win, y, x, "%c", workdir[c] );
+								success = 1;
 							}
 					}
-			//--= window substans  =----------------------------------------------------->
-    		for( y = 1; y < win->h-1; y++ )
+				else
 					{
-						systemlog( 6,"--= inside window substans =--" );
-
-						//test that we are not out of file_range before calling these funktions
-						if( y+win->slide[win->mlevel] <= getlast( win->filelist )->number )
+						if( y >= 1 && y < win->h-1 )
 							{
-								//makes shure selections gets right file
-								win->filelist = gotoEntry( win->filelist, y+win->slide[win->mlevel] );
-
-								//collorate row tru filetype
-								systemlog( 6,"collorate row tru filetype" );
-								if( win->filelist->selected )
-									filecolor = 9;
-								else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "ERROR") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "linkER"))
-            						filecolor = 8;
-            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "block") )
-              						filecolor = 7;
-            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "char") )
-              						filecolor = 6;
-            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "fifo") )
-              						filecolor = 5;
-            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "link") || isoffiletype( win->filelist, y+win->slide[win->mlevel], "<DIR L>") )
-              						filecolor = 4;
-            					else if( isoffiletype( win->filelist, y+win->slide[win->mlevel], "<DIR>") )
-              						filecolor = 3;
-            					else if( S_IEXEC & win->filelist->status )
-              						filecolor = 2;
-            					else
-              						filecolor = 1;
+								mvwprintw( win->win, y, x, "%c", workdir[c] );
+								success = 1;
 							}
+					}
+				c++;
+			}
 
-						//make line where marker is, white.
-						systemlog( 6,"make line where marker is, white\n" );
-						if( win->visible_marker && y+win->slide[win->mlevel] == win->marker[win->mlevel] )
-			 				{
-								filecolor = 1;
-								wattron( win->win, A_REVERSE  );
-							}
-						else
-							{ 
-								wattroff( win->win, A_REVERSE );
-							}
-							
+		win->shortcuts = getshortcut( win->shortcuts, 1 );
 
-						//rewind tabs
-						while( win->tab->prev != NULL )
-							win->tab = win->tab->prev;
+		if( orientation & 12 || orientation < 4 )
+			{
+				wattron( win->win, COLOR_PAIR( 11 ) );
+				if( strlen( workdir ) < win->w -6 )
+					{
+						mvwprintw( win->win, y, start -2, "[ " );
+						mvwprintw( win->win, y, x, " ]" );
+					}
+				else
+					{
+						mvwprintw( win->win, y, 1, "[ " );
+						mvwprintw( win->win, y, win->w -3, " ]" );
+					}
+				win->shortcuts->x = start;
+				win->shortcuts->y = y;
+			}
+		else
+			{
+				win->shortcuts->x = x;
+				win->shortcuts->y = start;
+			}
+		wattron( win->win, COLOR_PAIR( 1 ) );
 
-    					for( x = 1; x <= (win->w -2) ; x++ )
-							{
-								//as long as there are files to print
-								systemlog( 7,"1" );
-								if( y < listsize )
-           							{
-										//keep printibg while not in next tabfeeld, then shange to next tabfeeld
-										systemlog( 7,"2" );
-										if( win->tab->next != NULL && x >= win->tab->next->start )
-                      						{ win->tab = win->tab->next; endofname = 0; }
+		win->shortcuts->l = strlen( workdir );
 
-										//keep printing while there is something to print, ( check is inside switch/case )
-										systemlog( 7,"3" );
-										if( win->tab->opt == presentation && printfilename( win->filelist, x - win->tab->start, y + win->slide[win->mlevel] ) == '\0')
-               								endofname = 1;
+		return success;
+	}
 
-										//--= inside this actual printing is made =-------------------------------------------->
-										switch( win->tab->opt )
-      										{
-          										case selected:
-																	systemlog( 7,"S" );
-            														if( x - win->tab->start >= 0 && win->filelist->selected && x - win->tab->start < win->tab->length )
-																		{
-																			wattron( win->win, COLOR_PAIR( filecolor ) );
-              																mvwprintw( win->win, y, x, "*" );
-																		}
-																	else
-																		{
-																			wattron(win->win, COLOR_PAIR(1) );
-																			mvwprintw( win->win, y, x, " " );
+int print_win_shortcut( Windowtype *win, int num, int orientation, int highlight, int procent_spaceing )
+	{
+		//orientation =>
+		// xx00 = random
+		// xx01 = left
+		// xx10 = right
+		// xx11 = center
+		// 00xx = top
+		// 01xx = right
+		// 10xx = left
+		// 11xx = bottom
+		
+		int success = 0;
 
-																		}
-            											break;
+		int x = 0;
+		int y = 0;
+		int start = 0;
+		int c = 0;
+		int d = 0;
+		int spaceing = 0;
+		char status[30];
 
-          										case filename:
-																	systemlog( 7,"F" );
-																	if( x - win->tab->start >= 0 && x - win->tab->start < strlen( win->filelist->filename ) )
-																		{	
-																			wattron( win->win, COLOR_PAIR( filecolor ) );
-																			mvwprintw( win->win, y, x, "%c", win->filelist->filename[x - win->tab->start] );
-																		}
-																	else
-																		{
-																			wattron(win->win, COLOR_PAIR(1) );
-            																mvwprintw( win->win, y, x, " " );
-																		}
-            											break;
+		if( win->shortcuts->n != num )
+			win->shortcuts = getshortcut( win->shortcuts, num );
 
-          										case presentation:
-																	systemlog( 7,"P" );
-            														if( x - win->tab->start >= 0 && !endofname )
-																		{
-              																wattron( win->win, COLOR_PAIR( filecolor ) );
-              																mvwprintw( win->win, y, x, "%c", printfilename( win->filelist, x - win->tab->start, y + win->slide[win->mlevel]) );
-																		}
-            														else
-																		{
-																			wattron( win->win, COLOR_PAIR(1) );
-              																mvwprintw( win->win, y, x, " " );
-																		}
-            											break;
+		if( (orientation & 8) ^ (orientation & 4) )
+			{
+				spaceing = procent_spaceing * win->h / 100;
+			}
+		else
+			{
+				spaceing = procent_spaceing * win->w / 100;
+			}
 
-          										case filetype:
-																	systemlog( 7,"T" );
-            														if( x - win->tab->start >= 0 && x - win->tab->start < printfiletypelenght( win->filelist, y + win->slide[win->mlevel] ) )
-																		{
-                              												wattron( win->win, COLOR_PAIR( filecolor ) );
-              																mvwprintw( win->win, y, x, "%c", printCurrentfiletype( win->filelist, x - win->tab->start, y+win->slide[win->mlevel]) );
-																		}
-            														else
-																		{
-																			wattron( win->win, COLOR_PAIR(1) );
-              																mvwprintw( win->win, y, x, " " );
-																		}
-            											break;
 
-												case mode: 
-																	systemlog( 7,"M" );
-																	if( x - win->tab->start >= 0 && x - win->tab->start < win->tab->length )
-																		{
-																			wattron( win->win, COLOR_PAIR(1) );
+		if( win->shortcuts != NULL && win->shortcuts->label[0] != '-' ) //dont do a shit if its the none-shortcut shortcut
+			{
+				d = c;
 
-																			if( S_ISDIR( win->filelist->status )  && x - win->tab->start == 0 )
-																				mvwprintw( win->win, y, x, "d" );
-																			else if( ( win->filelist->status & S_IRUSR) && x - win->tab->start == 1 )
-																				mvwprintw( win->win, y, x, "r" );
-																			else if( ( win->filelist->status & S_IWUSR) && x - win->tab->start == 2 )
-                                                                                mvwprintw( win->win, y, x, "w" );
-																			else if( ( win->filelist->status & S_IXUSR) && x - win->tab->start == 3 )
-                                                                                mvwprintw( win->win, y, x, "x" );
-																			else if( ( win->filelist->status & S_IRGRP) && x - win->tab->start == 4 )
-                                                                                mvwprintw( win->win, y, x, "r" );
-																			else if( ( win->filelist->status & S_IWGRP) && x - win->tab->start == 5 )
-                                                                                mvwprintw( win->win, y, x, "w" );
-																			else if( ( win->filelist->status & S_IXGRP) && x - win->tab->start == 6 )
-                                                                                mvwprintw( win->win, y, x, "x" );
-																			else if( ( win->filelist->status & S_IROTH) && x - win->tab->start == 7 )
-                                                                                mvwprintw( win->win, y, x, "r" );
-																			else if( ( win->filelist->status & S_IWOTH) && x - win->tab->start == 8 )
-                                                                                mvwprintw( win->win, y, x, "w" );
-																			else if( ( win->filelist->status & S_IXOTH) && x - win->tab->start == 9 )
-                                                                                mvwprintw( win->win, y, x, "x" );
-																			else
-																				mvwprintw( win->win, y, x, "-" );
-																		}
-																	else
-																		{
-																			wattron( win->win, COLOR_PAIR(1) );
-																			mvwprintw( win->win, y, x, " " );
-																		}
-																	break;
+				if( highlight || win->shortcuts->highlighted )
+					wattron( win->win, COLOR_PAIR( 10 ) );
+				else
+					wattron( win->win, COLOR_PAIR( 12 ) );
 
-          										case size:
-																	systemlog( 7,"Z" );
-																	if( x - win->tab->start == 0 && x - win->tab->start < win->tab->length )
-																		{
-																			wattron( win->win, COLOR_PAIR(1) );
-																			if( win->filelist->filesize < 1000 )
-																				mvwprintw( win->win, y, x, "%ib", win->filelist->filesize );
-																			else if( win->filelist->filesize < 1000000 )
-																				mvwprintw( win->win, y, x, "%ikb", win->filelist->filesize/1000 );
-																			else if( win->filelist->filesize < 1000000000 )
-																				mvwprintw( win->win, y, x, "%iMb", win->filelist->filesize/1000000 );
-																			else if( win->filelist->filesize < 1000000000000 )
-																				mvwprintw( win->win, y, x, "%iGb", win->filelist->filesize/1000000000 );
-																			else
-																				mvwprintw( win->win, y, x, "%iTb", win->filelist->filesize/1000000000000 );
-																		}
-																	else if( x - win->tab->start >= 1 && x - win->tab->start < win->tab->length && x - win->tab->start < filesize_length( win->filelist->filesize ))
-																		{
-																			//do nothing
-																		}
-																	else
-																		{
-																			wattron( win->win, COLOR_PAIR(1) );
-																			mvwprintw( win->win, y, x, " " );
-																		}
-            														break;
-
-          										default:
-																	wattron( win->win, COLOR_PAIR(1) ); 
-            														mvwprintw( win->win, y, x, " " );
-            														break;
-      									}
-									}
+				while( c <= strlen( win->shortcuts->label ) )
+					{
+						if( (orientation & 3) == 3 )
+							{//center centration
+								systemlog( 1, "WARNING: print_win_shortcut: centration center is still under construction!" );
+								success = -1;
+							/*
+								if( orientation & 12 || orientation < 4 )
+									start = win->w/2 - strlen( win->shortcuts->label ) - num*SHORTCUTLABEL_LENGTH/2;
 								else
+									start = win->h/2 - strlen( win->shortcuts->label ) - num*SHORTCUTLABEL_LENGTH/2;
+							*/
+							}
+						else if( orientation & 2 )
+							{//left centration
+								start = 1 + (num-1)*SHORTCUTLABEL_LENGTH + spaceing;
+							}
+						else if( orientation & 1 )
+							{//right centration
+								if( orientation & 12 || orientation < 4 )
+									start = win->w -1 -win->shortcuts->l -(num-1)*SHORTCUTLABEL_LENGTH  -spaceing;
+								else
+									start = win->h -1 -win->shortcuts->l -(num-1)*SHORTCUTLABEL_LENGTH  -spaceing;
+							}
+						else
+							{
+								systemlog( 1, "ERROR: print_win_workdirectory: none text centration!" );
+								success = -1;
+							}
+
+						if( ( orientation & 12 ) == 12 )
+							{//botem border
+								y = win->h -1;
+								x = start + c;
+							}
+						else if( orientation & 8 )
+							{//left border
+								x = 0;
+								y = start + c;
+							}
+						else if( orientation & 4 )
+							{//right border
+								x = win->w -1;
+								y = start + c;
+							}
+						else
+							{//top border
+								y = 0;
+								x = start + c;
+							}
+
+						if( x >= 0 && x < win->w && y >= 0 && y < win->h )
+							{
+								mvwprintw( win->win, y, x, "%c", win->shortcuts->label[c] );
+								success = 1;
+							}
+						c++;
+					}
+
+				//define position if the past position ain't the same as the present
+				if( win->shortcuts->x != start +d && ( ( orientation & 12 ) == 12 || orientation < 4 ) )
+					{
+						win->shortcuts->x = start +d;
+						win->shortcuts->y = y;
+						systemlog( 4, "horizontal" );
+					}
+				else if( win->shortcuts->y != start +d && ((orientation & 12) == 4 || (orientation & 12) == 8) )
+					{
+						win->shortcuts->x = x;
+						win->shortcuts->y = start +d;
+						systemlog( 4, "vertikal");
+					}
+				sprintf( status, "%d shortcut number:%d, x:%d:, Y:%d, l:%d", orientation, win->shortcuts->n, win->shortcuts->x, win->shortcuts->y, win->shortcuts->l );
+				systemlog( 4, status );
+
+				if( highlight )
+					wattroff( win->win, COLOR_PAIR( 2 ) );
+			}
+
+		return success;
+	}
+
+int print_win_filetabs_line( Windowtype *win, int num, int orientation, int highlight, int procent_spaceing )
+	{
+		//orientation =>
+		// 00 = down -> up
+		// 01 =	left -> right
+		// 10 = right -> left
+		// 11 = up -> down
+
+		int success = 0;
+		int x = 1;
+		int y = 0;
+		int c = 0;
+		int start = 0;
+		int endofstring = 1;
+		char content[ PRESENTATION_LENGTH ];
+		int file_color = 1;
+		int not_printed = 1;
+		int spaceing = procent_spaceing * ( win->w -2 ) / 100;
+
+		//calculate spaceing
+		if( (orientation & 1)  ^ (orientation & 2) )
+			spaceing = procent_spaceing * ( win->w -2 ) / 100;
+		else
+			spaceing = procent_spaceing * ( win->h -2 ) / 100;
+
+		//rewind stuff
+		while( win->tab->prev != NULL )
+			win->tab = win->tab->prev;
+
+		if( win->filelist->number != num )
+			win->filelist = gotoEntry( win->filelist, num );
+
+		//let there be clors
+		if( win->marker[win->mlevel] == num && win->visible_marker )
+			{
+				wattron( win->win, A_REVERSE );
+				file_color = 1;
+			}
+		else if( highlight )
+			file_color = 10;
+		else if( win->filelist->selected )
+			file_color = 9;
+		else if( isoffiletype( win->filelist, num, "ERROR") || isoffiletype( win->filelist, num, "linkER" ) )
+			file_color = 8;
+		else if( isoffiletype( win->filelist, num, "block") )
+			file_color = 7;
+		else if( isoffiletype( win->filelist, num, "char") )
+			file_color = 6;
+		else if( isoffiletype( win->filelist, num, "fifo") )
+			file_color = 5;
+		else if( isoffiletype( win->filelist, num, "link") || isoffiletype( win->filelist, num, "<DIR L>") )
+			file_color = 4;
+		else if( isoffiletype( win->filelist, num, "<DIR>") )
+			file_color = 3;
+		else if( S_IEXEC & win->filelist->status )
+			file_color = 2;
+		else
+			file_color = 1;
+
+		//determen placement
+		if( ( orientation & 3 ) == 3 )
+			{
+				if( MOVEMENT >= 0 )
+					y = win->filelist->number -win->slide[ win->mlevel ] -spaceing;
+				else
+					y = win->filelist->number -win->slide[ win->mlevel ] +spaceing;
+					c = 0;
+			}
+		else if( orientation & 2 )
+			{
+				y = win->filelist->number -win->slide[ win->mlevel ];
+				if( MOVEMENT >= 0 )
+					c = 0 +spaceing;
+				else
+					c = 0 -spaceing;
+			}
+		else if( orientation & 1)
+			{
+				y = win->filelist->number -win->slide[ win->mlevel ];
+				if( MOVEMENT >= 0 )
+					c = 0 -spaceing;
+				else
+					c = 0 +spaceing;
+			}
+		else
+			{
+				if( procent_spaceing >= 0 )
+					y = win->filelist->number -win->slide[ win->mlevel ] +spaceing;
+				else
+					y = win->filelist->number -win->slide[ win->mlevel ] -spaceing;
+				c = 0;
+			}
+
+		//print stuff
+		while( x < win->w -1  && y > 0 && y < win->h -1 )
+			{
+				//-- prepare tab_content for printing
+				if( not_printed || ( win->tab->next != NULL && win->tab->next->start == c ) )
+					{
+						while( win->tab->next != NULL && win->tab->start < c && win->tab->next->start <= c )
+							win->tab = win->tab->next;
+
+						endofstring = 0;
+						wattron( win->win, COLOR_PAIR( 1 ) );
+						switch( win->tab->opt )
+							{
+								case nothing : 
+									wattron( win->win, COLOR_PAIR( 1 ) );
+									break;
+
+								case selected :
+									if( win->filelist->selected )
+										{
+											strcpy( content, "*" );
+										}
+									else
+										strcpy( content, " " );
+
+									wattron( win->win, COLOR_PAIR( file_color ) );
+									break;
+
+								case filename : 
+									strcpy( content, win->filelist->filename );
+									wattron( win->win, COLOR_PAIR( file_color ) );
+									break;
+
+								case presentation : 
+									strcpy( content, win->filelist->presentation );
+									wattron( win->win, COLOR_PAIR( file_color ) );
+									break;
+
+								case filetype :
+									strcpy( content, win->filelist->filetype );
+									wattron( win->win, COLOR_PAIR( file_color ) );
+									break;
+
+								case mode :
+									if( S_ISDIR( win->filelist->status ) ) { strcpy( content, "d" ); } else { strcpy( content, "-" ); }
+									if( win->filelist->status & S_IRUSR ) { strcat( content, "r" ); } else { strcat( content, "-" ); }
+									if( win->filelist->status & S_IWUSR ) { strcat( content, "w" ); } else { strcat( content, "-" ); }
+									if( win->filelist->status & S_IXUSR ) { strcat( content, "x" ); } else { strcat( content, "-" ); }
+									if( win->filelist->status & S_IRGRP ) { strcat( content, "r" ); } else { strcat( content, "-" ); }
+									if( win->filelist->status & S_IWGRP ) { strcat( content, "w" ); } else { strcat( content, "-" ); }
+									if( win->filelist->status & S_IXGRP ) { strcat( content, "x" ); } else { strcat( content, "-" ); }
+									if( win->filelist->status & S_IROTH ) { strcat( content, "r" ); } else { strcat( content, "-" ); }
+									if( win->filelist->status & S_IWOTH ) { strcat( content, "w" ); } else { strcat( content, "-" ); }
+									if( win->filelist->status & S_IXOTH ) { strcat( content, "x" ); } else { strcat( content, "-" ); }
+
+									if( highlight )
+										wattron( win->win, COLOR_PAIR( file_color ) );
+									break;
+
+								case size :
+									sprintf( content, "%db", win->filelist->filesize  );
+
+									if( highlight )
+										wattron( win->win, COLOR_PAIR( file_color ) );
+									break;
+
+								default : break;
+							}
+
+						if( win->tab->centration < 0 ) 
+							{//left
+								start = win->tab->start;
+							}
+						else if( win->tab->centration > 0 && win->tab->next != NULL )
+							{//right
+								if( win->tab->start > (start = c +( win->tab->next->start -win->tab->start ) -strlen( content ) ) )
 									{
-										wattron( win->win, COLOR_PAIR(1) );
+										start = win->tab->start;
+									}
+							}
+						else if( win->tab->centration > 0 )
+							{ //right-centration for endtab
+								if( win->tab->start > (start = c +( win->w -2 -win->tab->start ) -strlen( content ) ) )
+									{
+										start = win->tab->start;
+									}
+							}
+						else if( win->tab->centration == 0 && win->tab->next != NULL )
+							{//center
+								if( win->tab->start > ( start = c +( win->tab->next->start -win->tab->start )/2 -strlen( content )/2 ) )
+									{
+										start = win->tab->start;
+									}
+							}
+						else
+							{//center-centration for endtab
+								if( win->tab->start > ( start = c +( win->w -2 -win->tab->start )/2 -strlen( content )/2 ) )
+									{
+										start = win->tab->start;
+									}
+							}
+
+					}
+
+				//-- printing happens here ------------->
+				if( x > 0 )
+					{
+						if( c < start || c - start > strlen( content ) || endofstring || win->tab->opt == nothing )
+							{
+								mvwprintw( win->win, y, x, " " );
+							}
+						else
+							{
+								if( content[c-start] == '\0' )
+									{
+										endofstring = 1;
 										mvwprintw( win->win, y, x, " " );
 									}
+								else
+									mvwprintw( win->win, y, x, "%c", content[c-start] );
 							}
+					}
 
-								endofname = 0;
-								win->tab = gettab( win->tab, 1 );
-						}
+				//count upp
+				x++;
+				c++;
+
+				if( not_printed )
+					not_printed = 0;
+			}
+
+		wattroff( win->win, A_REVERSE );
+		wattron( win->win, COLOR_PAIR(1) );
+
+		return success;
+	}
+
+void printwindow( Windowtype *win, int movement, int activ )
+	{
+		int decoration_movement = 0;
+
+		systemlog( 2, "printwindow" );
+
+		if( movement < 0 )
+			movement = -movement;
+
+		if( !win->hidden )
+			{
+				
+				//reset stuff
+				wattroff( win->win, A_REVERSE );
+				clear();
+				if( STARTUP )
+					{
+						if( ANIMATING && movement )
+							decoration_movement = movement;
+						else
+							{
+								STARTUP = 0;
+								MOVEMENT = 100;
+							}
+					}
+
+				//window decorations
+				wattron( win->win, COLOR_PAIR( 11 ) );
+				box( win->win, 0, 0 );
+				wattron( win->win, COLOR_PAIR(1) );
+				print_win_workdirectory( win, win->orientation_workdir, activ, decoration_movement );
+
+				//decorate with shortcuts
+				systemlog( 4,"decorate with shortcuts" );
+				win->shortcuts = getshortcut( win->shortcuts, 2 );
+				while( win->shortcuts->next != NULL )
+					{
+						print_win_shortcut( win, win->shortcuts->n, win->orientation_shortcuts, 0, decoration_movement );
+						win->shortcuts = win->shortcuts->next;
+					}
+					print_win_shortcut( win, win->shortcuts->n, win->orientation_shortcuts, 0, decoration_movement );
+
+				if( STARTUP == 0 )
+				{
+				//print files, ALL of them. (only the once in visible range vill be seen)
+				while( win->filelist->prev != NULL && win->filelist->number > win->slide[win->mlevel] )
+						win->filelist = win->filelist->prev;
+				while( win->filelist->next != NULL && win->filelist->number - win->slide[win->mlevel] < win->h -2 )
+					{
+						print_win_filetabs_line( win, win->filelist->number, win->orientation_filelist, 0, movement );
+						win->filelist = win->filelist->next;
+					}
+					print_win_filetabs_line( win, win->filelist->number, win->orientation_filelist, 0, movement );
+				}
 			}
 
 		wrefresh( win->win );
-		systemlog( 2, "window printed" );
+		systemlog( 92, "\t[DONE]" );
 	}
 
 void clearwindow( Windowtype *win )
@@ -433,7 +772,7 @@ void clearwindow( Windowtype *win )
 		int x, 
 			y;
 
-		systemlog( 2, "clearing window..." );
+		systemlog( 2, "clearwindow" );
 
 		for( y = 0; y < win->h; y++ ){
 			for( x = 0; x < win->w; x++ ){
@@ -447,7 +786,7 @@ void clearwindow( Windowtype *win )
 			}
 		}
 
-		systemlog( 2, "window cleard" );
+		systemlog( 92, "\t[DONE]" );
 
 	}
 
@@ -470,8 +809,8 @@ int insidewindow( Windowtype *win, int y, int x )
 		
 		systemlog( 3, "testing if inside window." );
 
-			if( (x > win->x) && (x < win->x + win->w)
-			 && (y > win->y) && (y < win->y + win->h) )
+			if( (x > win->x) && (x < win->x + win->w -1)
+			 && (y > win->y) && (y < win->y + win->h -1) )
 				{
 					inside = 1;
 				}
@@ -479,30 +818,48 @@ int insidewindow( Windowtype *win, int y, int x )
 		return inside;
 	}
 
-int onshortcutrow( Windowtype *win, int y, int x )
+int onshortcut( Windowtype *win, int y, int x )
 	{
-		int spoton = 1;
+		int shortcut_num = 0;
+		char status[ 30 ];
 
-		systemlog( 3, "testing if on shourtcut." );
+		systemlog( 3, "testing if onshortcut" );
 
 		win->shortcuts = getshortcut( win->shortcuts, 1 );	
 
-			while( win->shortcuts->next != NULL && spoton )
+			while( 1 )
 				{
-					if( win->shortcuts->x + win->x == x || win->shortcuts->y + win->y == y )
+					if( ( win->orientation_shortcuts < 4 || ( win->orientation_shortcuts & 12 ) == 12 ) && y == win->shortcuts->y + win->y && x >= win->shortcuts->x + win->x && x <= win->shortcuts->x + win->shortcuts->l + win->x )
+						{
+							shortcut_num = win->shortcuts->n;
+							break;
+						}
+					else if( (( win->orientation_shortcuts & 4 ) || ( win->orientation_shortcuts & 8 ) ) && ( ( win->orientation_shortcuts & 12 ) != 12 ) && y >= win->shortcuts->y + win->y && y <= win->shortcuts->y + win->shortcuts->l + win->y && x == win->shortcuts->x + win->x )
+						{
+							shortcut_num = win->shortcuts->n;
+							break;
+						}
+					else if( win->shortcuts->next != NULL )
 						{
 							win->shortcuts = win->shortcuts->next;
 						}
 					else
 						{
-							spoton = 0;
+							break;
 						}
 				}
 
-			if(!( win->shortcuts->x + win->x == x || win->shortcuts->y + win->y ))
-				spoton = 0;
-
-		return spoton;
+		if( shortcut_num )
+			{
+				//sprintf( status, "\t[ success ] (shortcuts_num:%d, clickY:%d, clickX:%d)", shortcut_num, y, x );
+				sprintf( status, "\t[ success ]");
+				systemlog( 93, status );
+			}
+		else
+			{
+				systemlog( 94,"\t[FAILD]" );
+			}
+		return shortcut_num;
 	}
 
 shortcutType *getshortcut( shortcutType *shorty, int pos )
@@ -514,10 +871,16 @@ shortcutType *getshortcut( shortcutType *shorty, int pos )
 				shorty = shorty->prev;
 			}
 
-		while( shorty->next != NULL && shorty->y != pos )
+		if( shorty->n > pos )
+			systemlog( 1, "ERROR: getshortcut: the shortcut you are looking for is smaler than the lists minimum" );
+
+		while( shorty->next != NULL && shorty->n != pos )
 			{
 				shorty = shorty->next;
 			}
+
+		if( shorty->next == NULL && shorty->n != pos )
+			systemlog( 1, "ERROR: getshortcut: the shortcut number could not be found");
 
 		return shorty;
 	}
@@ -529,9 +892,9 @@ void destroywindow( Windowtype *win )
 		win->hidden = 1;
 		clearwindow( win );
 
-		clearEnvironment_tabs( win->tab );
+		clearEnvironment_tabs( &win->tab );
 
-		clearEntrys( win->filelist );
+		clearEntrys( &win->filelist );
 		closedir( win->dir );
 
 		delwin( win->win );

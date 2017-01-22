@@ -20,15 +20,15 @@ void addslash( char st[], char cmd[] )
 			for( i = 0; i < strlen(cmd); i++ )
 				{
 					if( cmd[i] == ' '
-					||  cmd[i] == '\n'
-					||  cmd[i] == '\t'
-					||  cmd[i] == '\0'
+					||  cmd[i] == '&'
 					||  cmd[i] == '('
 					||  cmd[i] == ')'
 					||  cmd[i] == '['
 					||  cmd[i] == ']'
 					||  cmd[i] == '<'
-					||  cmd[i] == '>' )
+					||  cmd[i] == '>'
+					||  cmd[i] == '\n'
+					||  cmd[i] == '\t' )
 						{
 							strcat( tmpcmd, "\\" );
 						}

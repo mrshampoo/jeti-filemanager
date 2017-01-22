@@ -28,13 +28,11 @@ $(BINDIR)/$(TARGET): $(OBJECTS)
 	mkdir -p $(BINDIR)
 	$(CC) $(CFLAGS) $(LIBS) $^ -o $@
 
-install: all $(CONFDIR)/$(CONFIG)
+install: all
 	install -D $(BINDIR)/$(TARGET) -t $(DESTDIR)$(PREFIX)/bin/
-	install -D $(CONFDIR)/* -t $(DESTDIR)$(PREFIX)/$(CONFDIR)/
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(TARGET)
-	rm -rf $(DESTDIR)$(PREFIX)/$(CONFDIR)
 
 .PHONY : clean
 clean:

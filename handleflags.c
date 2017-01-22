@@ -8,7 +8,6 @@ this program is distributed under the terms of the GNU General Public License*/
 #include "environment.h"
 #include "projecttypes.h"
 
-static int logprioritys_shown = 0;
 static int MUTE = 0;
 
 void showhelpmenu()
@@ -34,59 +33,67 @@ void showhelpmenu()
 	}
 void print_version()
 	{
-		printf( "1.2.3\n" );
+		printf( "%s\n", VERSION_PROGRAM );
 		exit(0);
 	}
 
 int handle_flags( int argc, char *argv[] )
-    {
-        int o = 0;
-        int alternativ_config = 0;
+	{
+		int o = 0;
+		int alternativ_config = 0;
+		int prio = -1;
 
-        while( argv[o+1] != NULL )
-            {
+		while( argv[o+1] != NULL )
+			{
 				o++;
 
-                if( !strncmp( argv[o], "-h", 2 ) || !strncmp( argv[o], "--help", 6 ))
-                    {
-                        showhelpmenu();
-                    }
-                else if( !strncmp( argv[o], "-l", 2 ) )
-                    {
-                        logprioritys_shown = (int) strtol( argv[o+1], NULL, 10 );
-                    }
-                else if( !strncmp( argv[o], "-m", 2 ) || !strncmp( argv[o], "--mute", 6 ) )
-                    {
-                        MUTE = 1;
-                    }
+				if( !strncmp( argv[o], "-h", 2 ) || !strncmp( argv[o], "--help", 6 ))
+					{
+						showhelpmenu();
+					}
+				else if( !strncmp( argv[o], "-l", 2 ) )
+					{
+						put_default_logpath();
+
+						if( argv[o+1] != NULL &&  argv[o+1][0] > 48 &&  argv[o+1][0] < 57 )
+							{
+								prio = (int) strtol( argv[o+1], NULL, 10 );
+								set_logpriority( prio );
+							}
+						else
+							{
+								prio = 1;
+								set_logpriority( prio );
+							}
+					}
+       			         else if( !strncmp( argv[o], "-m", 2 ) || !strncmp( argv[o], "--mute", 6 ) )
+					{
+						MUTE = 1;
+					}
 				else if( !strncmp( argv[o], "-c", 2 ) || !strncmp( argv[o], "--config", 8 ) )
-                    {
+					{
 						alternativ_config = set_configname( argv[o+1] );
 					}
 				else if( !strncmp( argv[o], "-v", 2 ) || !strncmp( argv[o], "--version", 9 ) )
-                    {
+					{
 						print_version();
 					}
-                else 
-                    {
+				else 
+					{
 						//printf( "strange input!\n" );
-                    }
-            }
+					}
+			}
 		if( !alternativ_config )
-			alternativ_config = get_configname();
+			pget_configname( alternativ_config );
 
-        return alternativ_config;
-    }
+        	return alternativ_config;
+	}
 
 int is_not_muted()
 	{
 		return !MUTE;
 	}
 
-int show_logprioritys()
-	{
-		return logprioritys_shown;
-	}
 int toggle_mute()
 	{
 		if( MUTE )

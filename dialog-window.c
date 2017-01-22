@@ -54,7 +54,9 @@ int print_dialogwin( dialogwindowtype *dialogwin, Windowtype *awin, char destiwd
 				wattron( dialogwin->win, COLOR_PAIR(1) );
 				
 				//decorations
+				wattron( dialogwin->win, COLOR_PAIR( 11 ) );
 				box( dialogwin->win, 0, 0 );
+				wattron( dialogwin->win, COLOR_PAIR( 1 ) );
 
 				//if( !confirmed && (DW_REACTION & 8 ) )
 				//	{
@@ -94,8 +96,8 @@ int print_dialogwin( dialogwindowtype *dialogwin, Windowtype *awin, char destiwd
 				wrefresh( dialogwin->win );
 
 				//decorate yes and no boxes
-			 	wattron( dialogwin->yes, COLOR_PAIR(1) );
-				wattron( dialogwin->no, COLOR_PAIR(1) );
+			 	wattron( dialogwin->yes, COLOR_PAIR(11) );
+				wattron( dialogwin->no, COLOR_PAIR(11) );
 				box( dialogwin->yes, 0, 0 );
 				box( dialogwin->no, 0, 0 );
 

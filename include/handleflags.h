@@ -8,7 +8,6 @@ this program is distributed under the terms of the GNU General Public License*/
 	void showhelpmenu();
 	void print_version();
 	int is_not_muted();
-	int show_logprioritys();
 	int toggle_mute();
 
 #endif

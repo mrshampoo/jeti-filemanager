@@ -15,6 +15,7 @@ this program is distributed under the terms of the GNU General Public License*/
 	int stepupp( Windowtype *win, soundeffectType *sounds );
 	int stepdown( Windowtype *win, soundeffectType *sounds );
 	int selectfile( Windowtype *win, soundeffectType *sounds );
+	int back_one_folder( Windowtype *win, soundeffectType *sounds );
 	int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds );
 	int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds );
 	int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds );

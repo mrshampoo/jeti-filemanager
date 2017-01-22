@@ -8,10 +8,9 @@ this program is distributed under the terms of the GNU General Public License*/
 	#define _dir_IO_
 
 	dirEntry *getlast( dirEntry *filelist );
-	dirEntry *getlast_and_add( dirEntry *filelist );
-	void clearEntrys( dirEntry *filelist );
-	dirEntry *getEntrys( DIR *dir, char wd[], dirEntry *filelist, int SHOWHIDDEN );
-	dirEntry *bubbeladd( dirEntry *filelist, dirEntry *obj );
+	void clearEntrys( dirEntry **filelist );
+	int rget_filelist( DIR *dir, char wd[], dirEntry **listptr, int SHOWHIDDEN );
+	int set_fileobj_tolist_sorted( dirEntry **listptr, dirEntry *obj );
 	dirEntry *gotoEntry( dirEntry *filelist, int filenr );
 
 	dirEntry *getid3tags( dirEntry *obj, char path[] );

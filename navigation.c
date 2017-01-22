@@ -138,29 +138,69 @@ int stepdown( Windowtype *win, soundeffectType *sounds )
 
 int selectfile( Windowtype *win, soundeffectType *sounds )
 	{
+		int success = 0;
+
 		systemlog( 3, "selectfile" );
 
 		if( !win->visible_marker )
 			win->visible_marker = 1;
 
-		win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
+		if( win->marker[win->mlevel] > 0 )
+			{
+				win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
 
-		//toggle select
-		if( win->filelist->selected == 0 )
-			{
-				win->filelist->selected = 1;
-			}
-		else if( win->filelist->selected == 1 )
-			{
-				win->filelist->selected = 0;
+				//toggle select
+				if( win->filelist->selected == 0 )
+					{
+						win->filelist->selected = 1;
+						success = 1;
+					}
+				else if( win->filelist->selected == 1 )
+					{
+						win->filelist->selected = 0;
+						success = 1;
+					}
+				else
+					{
+						return 0;
+					}
+
+				playsound( sounds, 9 );
 			}
 		else
+			systemlog( 4, "WARNING: selectfile: tryed to select 0 or lower" );
+
+		return success;
+	}
+
+int back_one_folder( Windowtype *win , soundeffectType *sounds )
+	{
+		int repaint = 0;
+
+		if( strlen( win->wd) > 1 )
 			{
-				return 0;
+				if( win->wd[ strlen( win->wd ) -1 ] == '/'  )
+					win->wd[ strlen( win->wd ) -1 ] = '\0';
+
+				while( win->wd[ strlen( win->wd ) -1 ] != '/' )
+					win->wd[ strlen( win->wd ) -1 ] = '\0';
+
+				if( win->mlevel > 0 )
+					win->mlevel--;
+				else
+					win->marker[ win->mlevel ] = -1;
+
+				MOVEMENT = -100;
 			}
 
-		playsound( sounds, 9 );
-		return 1;
+		repaint = loadnewdir( win, win->wd );
+
+		if( repaint )
+			{
+				playsound( sounds, 1 );
+			}
+
+		return repaint;
 	}
 
 int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds )
@@ -168,6 +208,7 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 		int i = 0;
 		int repaint = 0;
 		int notexec = -1;
+		int newdir = 0;
 
 		char dubbledot[] = "..";
 		char tmpcmd[250];
@@ -177,122 +218,108 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 
 		systemlog( 2, "enter" );
 
-		win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
-
-		if( isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR>" ) || isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR L>" ) || isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR LE>") )
+		if( win->marker[ win->mlevel ] > 0 )
 			{
-  				while( win->filelist->filename[i] == dubbledot[i] && i < 2 )
-   	 				{/*check for dubbledot*/ i++; }
+				win->filelist = gotoEntry( win->filelist, win->marker[win->mlevel] );
 
-    			if( i == 2 )
-					{ /*dubbledot was found, go back one folder*/
-						if( strlen( win->wd ) != 1 )
-							win->wd[strlen(win->wd)-1] = '\0';
+				if( isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR>" ) || isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR L>" ) || isoffiletype( win->filelist, win->marker[win->mlevel], "<DIR LE>") )
+					{
+  						while( win->filelist->filename[i] == dubbledot[i] && i < 2 )
+  		 	 				{/*check for dubbledot*/ i++; }
 
-						while( win->wd[strlen(win->wd)-1] != '/')
-							{
-								win->wd[strlen(win->wd)-1] = '\0';
+						if( i == 2 )
+							{ /*dubbledot was found, go back one folder*/
+								back_one_folder( win, sounds );
+								i = 0;
 							}
-
-						i = 0;
-
-						if( win->mlevel > 0 )
-							{
-								win->mlevel--;
+						else if( i == 1 && strlen(win->filelist->filename) == 1 )
+							{/*singledot*/
+								win->marker[win->mlevel] = -1;
+								strcpy( cmd, win->wd );
+								loadnewdir( win, cmd );
+								playsound( sounds, 2 );
 							}
 						else
-							{
-								win->marker[win->mlevel] = -1;
+							{/*regular folder*/
+								strcpy( cmd, win->wd );
+								if( win->wd[strlen(win->wd)-1] != '/')
+									strcat( cmd, "/");
+
+								strcat( cmd, win->filelist->filename );
+								strcat( cmd, "/");
+
+								if( ( newdir = loadnewdir( win, cmd )) )
+									{
+										win->mlevel++;
+										if( newdir & 2 )
+											{
+												win->marker[ win->mlevel ] = 0;
+												win->slide[ win->mlevel ] = 0;
+											}
+										MOVEMENT = 100;
+										playsound( sounds, 3 );
+									}
 							}
-
-						strcpy( cmd, win->wd );
-						loadnewdir( win, cmd );
-						playsound( sounds, 1 );
-					}
-				else if( i == 1 && strlen(win->filelist->filename) == 1 )
-					{/*singledot*/
-						win->marker[win->mlevel] = -1;
-						strcpy( cmd, win->wd );
-						loadnewdir( win, cmd );
-						playsound( sounds, 2 );
-					}
-				else
-    				{/*regular folder*/
-						strcpy( cmd, win->wd );
-						if( win->wd[strlen(win->wd)-1] != '/')
-							strcat( cmd, "/");
-
-						strcat( cmd, win->filelist->filename );
-						strcat( cmd, "/");
-
-						if( loadnewdir( win, cmd ) )
-							{
-								win->mlevel++;
-								win->marker[win->mlevel] = -1;
-								playsound( sounds, 3 );
-							}
-      				}
-				repaint = 1;
-			}
-		else
-			{/*regular file*/
-
-				//rewind fileactions
-				while( fileaction->next != NULL )
-					{	fileaction = fileaction->next;	}
-
-				//copy fileactions				
-				while( !isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) && fileaction->prev != NULL )
-					{ fileaction = fileaction->prev; }
-
-				//check executable or if no atribute was found
-				if( S_IEXEC & win->filelist->status && win->noexe == 0 )
-					{
-						strcpy( cmd, TERMINALNAME );
-						strcat( cmd, " -e " );
-					}
-				else if( isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) )
-					{
-						strcpy( cmd, fileaction->Action );
-						notexec = 0;
-					}
-				else
-					{
-						notexec = 1;
-					}
-
-				find_and_add_fp( cmd, cmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->filename );
-
-				if( cmd[0] != '\0' )
-					{
-						//add path
-						strcpy( tmpcmd, win->wd );
-        				if( win->wd[strlen(win->wd)-1] != '/' )
-          					{
-            						strcat( tmpcmd, "/" );
-          					}
-        				strcat( tmpcmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->filename );
-
-						addslash( cmd, tmpcmd );
-
-						//make silent and free
-						strcat( cmd, " > /dev/null 2>&1 &" );
-						win->visible_marker = 0;
-
-						if( notexec )
-							{
-								//play nothing
-							}
-						else if( notexec == 0 )
-							playsound( sounds, 16 );
-						else
-							playsound( sounds, 4 );
-
-        				system( cmd );
 						repaint = 1;
-
 					}
+				else
+					{/*regular file*/
 
+						//rewind fileactions
+						while( fileaction->next != NULL )
+							{	fileaction = fileaction->next;	}
+
+						//copy fileactions				
+						while( !isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) && fileaction->prev != NULL )
+							{ fileaction = fileaction->prev; }
+
+						//check executable or if no atribute was found
+						if( S_IEXEC & win->filelist->status && win->noexe == 0 )
+							{
+								strcpy( cmd, TERMINALNAME );
+								strcat( cmd, " -e " );
+							}
+						else if( isoffiletype( win->filelist, win->marker[win->mlevel], fileaction->filetype ) )
+							{
+								strcpy( cmd, fileaction->Action );
+								notexec = 0;
+							}
+						else
+							{
+								notexec = 1;
+							}
+
+						find_and_add_fp( cmd, cmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->filename );
+
+						if( cmd[0] != '\0' )
+							{
+								//add path
+								strcpy( tmpcmd, win->wd );
+								if( win->wd[strlen(win->wd)-1] != '/' )
+          								{
+            									strcat( tmpcmd, "/" );
+          								}
+       				 				strcat( tmpcmd, gotoEntry( win->filelist, win->marker[win->mlevel] )->filename );
+
+								addslash( cmd, tmpcmd );
+
+								//make silent and free
+								strcat( cmd, CMD_SILENCE );
+								win->visible_marker = 0;
+
+								if( notexec )
+									{
+										//play nothing
+									}
+								else if( notexec == 0 )
+									playsound( sounds, 16 );
+								else
+									playsound( sounds, 4 );
+
+								system( cmd );
+								repaint = 1;
+							}
+					}
 			}
 
 		return repaint;
@@ -328,10 +355,16 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 		else if( !strncmp( awin->shortcuts->dir, "$hidden", 7 ) )
 			{
 				systemlog( 4, "$hidden" );
-				if( awin->showhidden )
-					awin->showhidden = 0;
+				if( awin->show_hidden_files )
+					{
+						awin->show_hidden_files = 0;
+						awin->shortcuts->highlighted = 0;
+					}
 				else
-					awin->showhidden = 1;
+					{
+						awin->show_hidden_files = 1;
+						awin->shortcuts->highlighted = 1;
+					}
 
 				strcpy( dir, awin->wd );
 			}
@@ -339,9 +372,15 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 			{
 				systemlog( 4, "$noexe");
 				if( awin->noexe )
-					awin->noexe = 0;
+					{
+						awin->noexe = 0;
+						awin->shortcuts->highlighted = 0;
+					}
 				else
-					awin->noexe = 1;
+					{
+						awin->noexe = 1;
+						awin->shortcuts->highlighted = 1;
+					}
 
 				strcpy( dir, awin->wd );
 			}
@@ -349,6 +388,7 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 			{
 				systemlog( 4, "$mute" );
                 		toggle_mute();
+				awin->shortcuts->highlighted = !awin->shortcuts->highlighted;
 
                 		strcpy( dir, awin->wd );
             		}
@@ -404,13 +444,14 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 
 		playsound( sounds, 13 );
 		loadnewdir( awin, dir );
+		MOVEMENT = 100;
 		return 1;
 	}
 
 int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 	{
 		int x = 0;
-		int repaint = 1;
+		int repaint = 3;
 		int quote = 0;
 		int pass = 0;
 		char cmd[COMMANDLENGTH];
@@ -458,12 +499,12 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 										quote = 0;
 									}
 
-								strcat( cmd, " >/dev/null 2>/dev/null" );
+								strcat( cmd, CMD_SILENCE );
+								awin->filelist->selected = 0;
 
 								system( cmd );
 						
-								awin->filelist->selected = 0;
-								repaint++;
+								repaint = 2;
 							}
 					}
 			}
@@ -472,10 +513,9 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 
 		if( repaint )
 			{
-				loadnewdir( awin, awin->wd );
+				sleep( 1 );
 				loadnewdir( pwin, pwin->wd );
 				playsound( sounds, 10 );
-				repaint++;
 			}
 
 		return repaint;
@@ -484,7 +524,7 @@ int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 	{
 		int x = 0;
-		int repaint = 1;
+		int repaint = 3;
 		int quote = 0;
 		int pass = 0;
 		char cmd[COMMANDLENGTH];
@@ -528,12 +568,12 @@ int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 										quote = 0;
 									}
 
-								strcat( cmd, " >/dev/null 2>/dev/null" );
+								strcat( cmd, CMD_SILENCE );
+								awin->filelist->selected = 0;
 
 								system( cmd );
 
-								awin->filelist->selected = 0;
-								repaint++;
+								repaint = 3;
 							}
 					}
 			}
@@ -542,10 +582,10 @@ int movefiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )
 
 		if( repaint )
 			{
+				sleep( 1 );
 				loadnewdir( awin, awin->wd );
 				loadnewdir( pwin, pwin->wd );
 				playsound( sounds, 11 );
-				repaint++;
 			}
 
 		return repaint;
@@ -599,12 +639,12 @@ int removefiles( Windowtype *awin, soundeffectType *sounds )
 										quote = 0;
 									}
 
-								strcat( cmd, " >/dev/null 2>/dev/null" );
+								strcat( cmd, CMD_SILENCE );
+								awin->filelist->selected = 0;
 
 								system( cmd );
 
-								awin->filelist->selected = 0;
-								repaint++;
+								repaint = 1;
 							}
 					}
 			}
@@ -613,8 +653,9 @@ int removefiles( Windowtype *awin, soundeffectType *sounds )
 
 		if( repaint )
 			{
-				playsound( sounds, 12 );
+				sleep( 1 );
 				loadnewdir( awin, awin->wd );
+				playsound( sounds, 12 );
 			}
 
 		return repaint;
