@@ -76,7 +76,7 @@ the jeti.rc files:
 		terminal.name: <terminal>
 			for executing of scripts and other binarys.
 
-		logfile.path: <path> <priority int>
+		logfile.path&prio: <path> <priority int>
 			a directory where the logfile will be stored when using -l, if non set it will put it in your current directory.
 			Note place this option in the top of your rc, if you want the full log output, or ells it will miss printing stuff untill this is called.
 
@@ -101,6 +101,47 @@ the jeti.rc files:
 			cwd : same directory as jeti was launched.
 			"/directory/" : starts at directory
 			"/" : start at rot, (default)
+
+		window.workdir.orientation: <binary int> <type>
+			where <binary int>:
+				1 : left centerd
+				2 : right centerd
+				3 : center centration
+				0 : placement on the top border
+				4 : placement on left border
+				8 : placement on right border
+				12 : placement on bottomborder
+			where <type>
+				mirror : this will make the right windows workdirectory a mirror of the left
+				leaf : this shows only the leaf directory
+				fullpath : this shows the full path of your workdriectory
+
+		window.shortcut.orientation: <binary int> <type>
+			where <binary int>:
+				1 : left centerd
+				2 : right centerd
+				3 : center centration (this is currently under construction)
+				0 : placement on the top border
+				4 : placement on left border
+				8 : placement on right border
+				12 : placement on bottomborder
+			where <type>
+				mirror : this will make the right windows shortcuts a mirror of the left
+
+		window.files.orientation: <binary int> <type>
+			where <binary int>:
+				0 : down -> up
+				1 : left -> right
+				2 : right -> left
+				3 : up -> down
+			where <type>
+				mirror : this will make the right windows shortcuts a mirror of the left
+
+		window.animations: <boolean>
+			where <boolean>
+				0 or false : no animations
+				1 or true : animations is activated
+			
 
 	tabs:
 		window.tab.left: <tabtype> <optional predefined lenght>
