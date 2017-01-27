@@ -22,7 +22,7 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 $(OBJDIR)/%.o: %.c $(INCLUDES)
-	$(CC) $(CFLAGS) $(LIBS) -c $< -I$(INCDIR) -o $@
+	$(CC) $(CFLAGS) $(LIBS) -c $< -I$(INCDIR) $(LDFLAGS) $(LIBS) -o $@
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	mkdir -p $(BINDIR)

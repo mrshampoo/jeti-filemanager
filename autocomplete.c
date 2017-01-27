@@ -26,7 +26,7 @@ void addslash( char st[], char cmd[] )
 					||  cmd[i] == '['
 					||  cmd[i] == ']'
 					||  cmd[i] == '\''
-					||  cmd[i] == '"'
+					||  cmd[i] == '\"'
 					||  cmd[i] == '<'
 					||  cmd[i] == '>'
 					||  cmd[i] == '\n'
