@@ -26,7 +26,7 @@ $(OBJDIR)/%.o: %.c $(INCLUDES)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	mkdir -p $(BINDIR)
-	$(CC) $(CFLAGS) $(LIBS) $^ -o $@
+	$(CC) $(CFLAGS) $(LIBS) $^ $(LDFLAGS) $(LIBS) -o $@
 
 install: all
 	install -D $(BINDIR)/$(TARGET) -t $(DESTDIR)$(PREFIX)/bin/
