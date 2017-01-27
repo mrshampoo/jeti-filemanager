@@ -28,9 +28,11 @@ $(BINDIR)/$(TARGET): $(OBJECTS)
 	mkdir -p $(BINDIR)
 	$(CC) $(CFLAGS) $(LIBS) $^ -o $@
 
+.PHONY : all
 install: all
 	install -D $(BINDIR)/$(TARGET) -t $(DESTDIR)$(PREFIX)/bin/
 
+.PHONY : uninstall
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 
