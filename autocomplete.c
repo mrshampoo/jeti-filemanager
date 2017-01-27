@@ -25,6 +25,8 @@ void addslash( char st[], char cmd[] )
 					||  cmd[i] == ')'
 					||  cmd[i] == '['
 					||  cmd[i] == ']'
+					||  cmd[i] == '\''
+					||  cmd[i] == '"'
 					||  cmd[i] == '<'
 					||  cmd[i] == '>'
 					||  cmd[i] == '\n'
@@ -45,7 +47,7 @@ void addslash( char st[], char cmd[] )
 
 int find_and_add_dir( char st[], char cmd[], char adir[], char pdir[] )
 	{
-		int at = 0;
+		int activdirs = 0;
 		int i = 0; //current char
 		char c[2]; //char to string midleman
 		char tmpcmd[512];
@@ -59,15 +61,15 @@ int find_and_add_dir( char st[], char cmd[], char adir[], char pdir[] )
 			{
 				if( cmd[i] == '$' && cmd[i+1] == 'd' )
 					{
-						if( cmd[i+2 == 2] )
+						if( cmd[i+2] == '2' )
 							{
-								at = i;
+								activdirs |= 2;
 								strcat( tmpcmd, pdir );
 								i += 4;
 							}
-						else if( cmd[i+2] == 1 || cmd[i+2] == ' ' )
+						else if( cmd[i+2] == '1' || cmd[i+2] == ' ' )
 							{
-								at = i;
+								activdirs |= 1;
 								strcat( tmpcmd, adir );
 								i += 4;
 							}
@@ -89,12 +91,12 @@ int find_and_add_dir( char st[], char cmd[], char adir[], char pdir[] )
 
 		strcpy( st, tmpcmd );
 		systemlog( 93, st );
-		return at;
+		return activdirs;
 	}
 
 int find_and_add_fp( char st[], char cmd[], char fp[] )
 	{
-		int at = 0;
+		int activ = 0;
 		int i = 0; //current char
 
 		char c[2]; //char to string midleman
@@ -110,7 +112,7 @@ int find_and_add_fp( char st[], char cmd[], char fp[] )
 			{
 				if( cmd[i] == '$' && cmd[i+1] == 'f' )
 					{ 
-						at = i;
+						activ |= 1;
 						strcat( tmpcmd, fp );
 						i += 2;
 					}
@@ -121,5 +123,5 @@ int find_and_add_fp( char st[], char cmd[], char fp[] )
 
 		strcpy( st, tmpcmd );
 			
-		return at;
+		return activ;
 	}

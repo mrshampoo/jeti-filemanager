@@ -233,7 +233,7 @@ int print_win_workdirectory( Windowtype *win, int orientation, int highlight, in
 		else
 			{
 				//get leaf dir
-				if ( ( c = strlen( win->wd ) -1) > 0 )
+				if ( ( c = strlen( win->wd )-1 ) > 0 )
 					{
 						if( win->wd[c] == '/' )
 							c--;
@@ -242,6 +242,9 @@ int print_win_workdirectory( Windowtype *win, int orientation, int highlight, in
 							c--;
 
 						strcpy( workdir, win->wd + c +1 );
+
+						if( workdir[ c = strlen(workdir) -1 ] == '/' )
+							workdir[c] = '\0';
 					}
 				else
 					{
@@ -257,7 +260,7 @@ int print_win_workdirectory( Windowtype *win, int orientation, int highlight, in
 
 		if( (orientation & 3) == 3 )
 			{//center centration
-				if( orientation & 12 || orientation < 4 )
+				if( (orientation & 12) == 12 || orientation < 4 )
 					start = win->w/2 - strlen( workdir )/2;
 				else
 					start = win->h/2 - strlen( workdir )/2;
@@ -268,7 +271,7 @@ int print_win_workdirectory( Windowtype *win, int orientation, int highlight, in
 			}
 		else if( orientation & 1 )
 			{//right centration
-				if( orientation & 12 || orientation < 4 )
+				if( (orientation & 12) == 12 || orientation < 4 )
 					start = win->w -3 -strlen( workdir ) -spaceing;
 				else
 					start = win->h -3 -strlen( workdir ) -spaceing;
@@ -302,7 +305,7 @@ int print_win_workdirectory( Windowtype *win, int orientation, int highlight, in
 						x = start + c;
 					}
 
-				if( orientation & 12 || orientation < 4 )
+				if( (orientation & 12) == 12 || orientation < 4 )
 					{
 						if( x >= 1 && x < win->w -1  )
 							{
@@ -312,7 +315,7 @@ int print_win_workdirectory( Windowtype *win, int orientation, int highlight, in
 					}
 				else
 					{
-						if( y >= 1 && y < win->h-1 )
+						if( y >= 1 && y < win->h -1 )
 							{
 								mvwprintw( win->win, y, x, "%c", workdir[c] );
 								success = 1;
@@ -323,7 +326,8 @@ int print_win_workdirectory( Windowtype *win, int orientation, int highlight, in
 
 		win->shortcuts = getshortcut( win->shortcuts, 1 );
 
-		if( orientation & 12 || orientation < 4 )
+		//print brackets and set shortcut- size and cordinats
+		if( (orientation & 12 ) == 12 || orientation < 4 )
 			{
 				wattron( win->win, COLOR_PAIR( 11 ) );
 				if( strlen( workdir ) < win->w -6 )
@@ -414,7 +418,7 @@ int print_win_shortcut( Windowtype *win, int num, int orientation, int highlight
 							}
 						else if( orientation & 1 )
 							{//right centration
-								if( orientation & 12 || orientation < 4 )
+								if( ( orientation & 12 ) == 12 || orientation < 4 )
 									start = win->w -1 -win->shortcuts->l -(num-1)*SHORTCUTLABEL_LENGTH  -spaceing;
 								else
 									start = win->h -1 -win->shortcuts->l -(num-1)*SHORTCUTLABEL_LENGTH  -spaceing;

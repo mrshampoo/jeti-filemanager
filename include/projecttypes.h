@@ -9,7 +9,7 @@ this program is distributed under the terms of the GNU General Public License*/
 
 	//#define CONFIGNAME "jeti.rc"
 	#define LABEL_PROGRAM "Jeti-filemanager"
-	#define VERSION_PROGRAM "2.0.0"
+	#define VERSION_PROGRAM "2.0.1"
 	#define COMMANDLENGTH 256
 	#define CMDHISTORY 10
 	#define SIZE_HISTORY 50

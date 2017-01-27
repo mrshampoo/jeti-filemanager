@@ -209,6 +209,7 @@ int set_win_workdir_type( Windowtype *win, int type, int orientation )
 
 		if( success != -1 )
 			{
+				//if fullpath
 				win->type_workdir = type & 1;
 				success |= 1;
 
@@ -247,6 +248,16 @@ int set_win_workdir_type( Windowtype *win, int type, int orientation )
 									}
 								else
 									{
+										if( orientation & 8 )
+											{
+												win->orientation_workdir = orientation & 3;
+												win->orientation_workdir |= 4;
+											}
+										else if( orientation & 4 )
+											{
+												win->orientation_workdir = orientation & 3;
+												win->orientation_workdir |= 8;
+											}
 									}
 							}
 					}
@@ -308,6 +319,19 @@ int set_win_shortcut_type( Windowtype *win, int type, int orientation )
 										else
 											{
 												win ->orientation_shortcuts = orientation;
+											}
+									}
+								else
+									{
+										if( orientation & 8 )
+											{
+												win->orientation_shortcuts = orientation & 3;
+												win->orientation_shortcuts |= 4; 
+											}
+										else if( orientation & 4 )
+											{
+												win->orientation_shortcuts = orientation & 3;
+												win->orientation_shortcuts |= 8;
 											}
 									}
 							}
@@ -1639,11 +1663,11 @@ int fget_win_workdir_type( char buff[], Windowtype *win )
 							}
 						else if( !strncmp( buff+i, "leaf", 4 ) )
 							{i+=4;
-								type |= 1;
+								type &= 2;
 							}
 						else if( !strncmp( buff+i, "fullpath", 8 ) )
 							{i+=8;
-								type = !( type & 1 );
+								type |= 1;
 							}
 						else
 							i++;

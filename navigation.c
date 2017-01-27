@@ -328,6 +328,8 @@ int enter( Windowtype *win, filetypeAction *fileaction, soundeffectType *sounds 
 
 int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds )
 	{
+
+		int repaint = 0;
 		int d = 0;
 		int x = 0;
 		int selected = 0;
@@ -342,6 +344,7 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 			{
 				systemlog( 4, "$passiv");
 				strcpy( dir, pwin->wd );
+				repaint |= 1;
 			}
 		else if( !strncmp( awin->shortcuts->dir, "$home", 5 ) )
 			{
@@ -351,6 +354,7 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 						homedir = getpwuid( getuid() )->pw_dir;
 					}
 				strcpy( dir, homedir );
+				repaint |= 1;
 			}
 		else if( !strncmp( awin->shortcuts->dir, "$hidden", 7 ) )
 			{
@@ -367,6 +371,7 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 					}
 
 				strcpy( dir, awin->wd );
+				repaint |= 1;
 			}
 		else if( !strncmp( awin->shortcuts->dir, "$noexe", 5 ) )
 			{
@@ -398,13 +403,13 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 				systemlog( 95, awin->shortcuts->dir +d );
 				systemlog( 95, awin->wd );
 
-				find_and_add_dir( cmd, awin->shortcuts->dir +d, awin->wd, pwin->wd );
+				repaint |= find_and_add_dir( cmd, awin->shortcuts->dir +d, awin->wd, pwin->wd );
 				strcat( cmd ," > /dev/null 2>&1 &" );
 
 				for( x = 1; x <= printtotalnr( awin->filelist ); x++ )
 					{
 						awin->filelist = gotoEntry( awin->filelist, x );
-						if( awin->filelist->selected && find_and_add_fp( tcmd, cmd, awin->filelist->filename ) )
+						if( awin->filelist->selected && ( repaint |= find_and_add_fp( tcmd, cmd, awin->filelist->filename ) ) )
 							{
 								if( !selected )
 									chdir( awin->wd );
@@ -415,6 +420,9 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 								systemlog( 5, "file#");
 								systemlog( 95, tcmd );
 								system( tcmd );
+								repaint |= 4;
+								if( !strcmp( pwin->wd, awin->wd ) )
+									repaint |= 2;
 							}
 					}
 				if( !selected )
@@ -436,6 +444,7 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 				systemlog( 4,"goto dir:" );
 				systemlog( 94, awin->shortcuts->dir );
 				strcpy( dir, awin->shortcuts->dir );
+				repaint |= 1;
 			}
 
 		awin->mlevel = 0;    
@@ -443,9 +452,23 @@ int handleshortcut( Windowtype *awin ,Windowtype *pwin, soundeffectType *sounds 
 		//awin->slide[awin->mlevel] = 0;
 
 		playsound( sounds, 13 );
-		loadnewdir( awin, dir );
-		MOVEMENT = 100;
-		return 1;
+		if( repaint & 4 )
+			{
+				sleep( 1 );
+			}
+		if( repaint & 1 )
+			{
+				if( strcmp( awin->wd, dir ) )
+					MOVEMENT = 100;
+				loadnewdir( awin, dir );
+			}
+		if( repaint & 2 )
+			{
+				loadnewdir( pwin, pwin->wd );
+				//MOVEMENT = 100;
+			}
+
+		return repaint;
 	}
 
 int copyfiles( Windowtype *awin, Windowtype *pwin, soundeffectType *sounds )

@@ -135,7 +135,7 @@ the jeti.rc files:
 				2 : right -> left
 				3 : up -> down
 			where <type>
-				mirror : this will make the right windows shortcuts a mirror of the left
+				mirror : this will make the right windows filemovement a mirror of the left
 
 		window.animations: <boolean>
 			where <boolean>
