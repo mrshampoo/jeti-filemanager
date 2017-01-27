@@ -23,8 +23,8 @@ dialogwindowtype *new_dialogwindow( int h, int w, int y, int x )
 			dialogwin->x = x;
 			dialogwin->hidden = 1;
 
-		if( h < 6 || w < 18 )
-			systemlog( 1, "WARNING: dialogbox to smal for yes and no boxes" );
+			if( h < 6 || w < 18 )
+				systemlog( 1, "WARNING: dialogbox to smal for yes and no boxes" );
 
 			dialogwin->yes = newwin( 3, 11, y+h-4, x+w/2-11-1 );
 			dialogwin->no = newwin( 3, 11, y+h-4, x+w/2+1 );

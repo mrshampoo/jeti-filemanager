@@ -513,7 +513,7 @@ int print_win_filetabs_line( Windowtype *win, int num, int orientation, int high
 		if( win->filelist->number != num )
 			win->filelist = gotoEntry( win->filelist, num );
 
-		//let there be clors
+		//let there be colors
 		if( win->marker[win->mlevel] == num && win->visible_marker )
 			{
 				wattron( win->win, A_REVERSE );
@@ -546,8 +546,10 @@ int print_win_filetabs_line( Windowtype *win, int num, int orientation, int high
 				if( MOVEMENT >= 0 )
 					y = win->filelist->number -win->slide[ win->mlevel ] -spaceing;
 				else
-					y = win->filelist->number -win->slide[ win->mlevel ] +spaceing;
-					c = 0;
+					{
+						y = win->filelist->number -win->slide[ win->mlevel ] +spaceing;
+						c = 0;
+					}
 			}
 		else if( orientation & 2 )
 			{

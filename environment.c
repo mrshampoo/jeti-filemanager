@@ -1422,7 +1422,8 @@ int pget_configname()
 			{
 				c = 0; fp = popen( "echo $HOME/.jeti.rc", "r" );
 				while( ( buff[c] = fgetc( fp ) ) != EOF )
-					c++; buff[c-1] = '\0';
+					c++; 
+				buff[c-1] = '\0';
 
 				if( !access( buff, R_OK ) )
 					success = set_configname( buff );
