@@ -22,11 +22,11 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 $(OBJDIR)/%.o: %.c $(INCLUDES)
-	$(CC) $(CFLAGS) $(LIBS) -c $< -I$(INCDIR) $(LDFLAGS) $(LIBS) -o $@
+  $(CC) $(CFLAGS) -c $< -I$(INCDIR) -o $@
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	mkdir -p $(BINDIR)
-	$(CC) $(CFLAGS) $(LIBS) $^ $(LDFLAGS) $(LIBS) -o $@
+	$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
 
 install: all
 	install -D $(BINDIR)/$(TARGET) -t $(DESTDIR)$(PREFIX)/bin/
